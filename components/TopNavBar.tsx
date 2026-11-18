@@ -1,15 +1,25 @@
 'use client';
 
 import React from 'react';
-import { PersonaMode, Language } from '@/types/nilamtrace';
-import { ShieldCheck, PhoneCall, Monitor, Scale, Sparkles, Languages, RotateCcw } from 'lucide-react';
+import { Language } from '@/types/nilamtrace';
+import {
+  ShieldCheck,
+  PhoneCall,
+  FileSearch,
+  CheckCheck,
+  Sparkles,
+  Languages,
+  RotateCcw,
+  ChevronDown,
+} from 'lucide-react';
+
+export type ActiveStep = 1 | 2 | 3;
 
 interface TopNavBarProps {
-  currentPersona: PersonaMode;
-  onSelectPersona: (persona: PersonaMode) => void;
+  activeStep: ActiveStep;
+  onSelectStep: (step: ActiveStep) => void;
   language: Language;
-  onToggleLanguage?: () => void;
-  onSelectLanguage?: (lang: Language) => void;
+  onSelectLanguage: (lang: Language) => void;
   onRunQuickDemo: () => void;
   isQuickDemoRunning: boolean;
   selectedCaseId: string;
@@ -18,10 +28,9 @@ interface TopNavBarProps {
 }
 
 export const TopNavBar: React.FC<TopNavBarProps> = ({
-  currentPersona,
-  onSelectPersona,
+  activeStep,
+  onSelectStep,
   language,
-  onToggleLanguage,
   onSelectLanguage,
   onRunQuickDemo,
   isQuickDemoRunning,
@@ -32,218 +41,176 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   const isTa = language === 'ta';
   const isHi = language === 'hi';
 
-  const handleLang = (lang: Language) => {
-    if (onSelectLanguage) {
-      onSelectLanguage(lang);
-    } else if (onToggleLanguage) {
-      onToggleLanguage();
-    }
-  };
-
   return (
-    <header className="sticky top-0 z-50 bg-[#0B6E4F] text-white shadow-md border-b border-[#08523B]">
-      {/* Top micro banner: Statutory e-Sevai Fee Banner & Case Switcher */}
-      <div className="bg-[#08523B] px-4 py-1.5 text-xs flex flex-wrap items-center justify-between border-b border-[#0B6E4F]/40 font-medium">
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-emerald-100">
-            {isTa
-              ? 'தமிழ்நாடு அரசு வருவாய்த் துறை • இ-சேவை மையம் / JanAI Café'
-              : isHi
-              ? 'तमिलनाडु सरकार राजस्व प्रशासन • जनएआई कैफ़े / ई-सेवा केंद्र'
-              : 'Govt of Tamil Nadu • Dept of Revenue Administration • JanAI Café Console'}
-          </span>
-        </div>
-
-        {/* Official Statutory Fee & Pilot Benchmarks */}
-        <div className="flex items-center gap-3 bg-[#053828] px-3 py-0.5 rounded-full border border-emerald-400/30 text-[11px]">
-          <span className="text-emerald-300 font-semibold uppercase tracking-wider">
-            {isTa ? 'அரசு சேவைக் கட்டணம்:' : isHi ? 'सरकारी सेवा शुल्क:' : 'Statutory e-Sevai Fee:'}
-          </span>
-          <span className="text-emerald-200 font-mono font-bold">₹60.00 (REV-114 / Patta)</span>
-          <span className="bg-emerald-500/20 text-emerald-200 px-1.5 py-0.2 rounded text-[10px] font-bold">
-            {isTa ? 'நேர சேமிப்பு: 45நிமி ➔ 12நிமி' : isHi ? 'समय बचत: 45मि ➔ 12मि' : 'Turnaround: 45m ➔ 12m'}
-          </span>
-        </div>
-
-        {/* Case Switcher */}
-        <div className="flex items-center gap-1.5 text-[11px]">
-          <span className="text-emerald-200">{isTa ? 'வழக்கு:' : isHi ? 'केस:' : 'Active Case:'}</span>
-          <button
-            onClick={() => onSelectCase('4821')}
-            className={`px-2 py-0.5 rounded transition ${
-              selectedCaseId === '4821'
-                ? 'bg-emerald-500 text-white font-bold shadow-xs'
-                : 'text-emerald-200 hover:bg-[#0B6E4F]'
-            }`}
-          >
-            #4821 (Inheritance)
-          </button>
-          <button
-            onClick={() => onSelectCase('9012')}
-            className={`px-2 py-0.5 rounded transition ${
-              selectedCaseId === '9012'
-                ? 'bg-red-600 text-white font-bold shadow-xs'
-                : 'text-emerald-200 hover:bg-[#0B6E4F]'
-            }`}
-          >
-            #9012 (Poramboke Alert)
-          </button>
-        </div>
-      </div>
-
-      {/* Main navigation bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
-        {/* Brand & Tamil Nadu Emblem */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-white/10 p-1 flex items-center justify-center border border-white/20 shadow-inner">
-            <svg
-              viewBox="0 0 100 100"
-              className="w-8 h-8 fill-emerald-100"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M50 5 L65 30 L60 30 L70 50 L63 50 L75 75 L25 75 L37 50 L30 50 L40 30 L35 30 Z" />
-              <rect x="42" y="75" width="16" height="20" rx="1" />
-              <circle cx="50" cy="45" r="4" fill="#0B6E4F" />
-            </svg>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-1.5">
-                <span>{isTa ? 'நிலம்தடம்' : isHi ? 'नीलमट्रेस' : 'NilamTrace'}</span>
-                <span className="text-emerald-300 font-light">|</span>
-                <span className="font-semibold text-emerald-100">
+    <header className="h-14 sticky top-0 z-50 bg-[#0B6E4F] text-white border-b border-[#08523B] shadow-sm select-none">
+      <div className="h-full max-w-full px-3 sm:px-4 flex items-center justify-between gap-2">
+        {/* LEFT: Brand + Compact Case Switcher */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+              <svg viewBox="0 0 100 100" className="w-5 h-5 fill-emerald-100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 5 L65 30 L60 30 L70 50 L63 50 L75 75 L25 75 L37 50 L30 50 L40 30 L35 30 Z" />
+                <rect x="42" y="75" width="16" height="20" rx="1" />
+                <circle cx="50" cy="45" r="4" fill="#0B6E4F" />
+              </svg>
+            </div>
+            <div className="leading-tight">
+              <div className="flex items-center gap-1">
+                <span className="font-bold text-sm tracking-tight text-white">
+                  {isTa ? 'நிலம்தடம்' : isHi ? 'नीलमट्रेस' : 'NilamTrace'}
+                </span>
+                <span className="text-emerald-300 text-xs font-light">|</span>
+                <span className="text-xs font-semibold text-emerald-100 hidden sm:inline">
                   {isTa ? 'NilamTrace' : isHi ? 'NilamTrace' : 'நிலம்தடம்'}
                 </span>
-              </h1>
-              <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-700/80 text-emerald-100 px-2 py-0.5 rounded-md border border-emerald-500/40">
-                <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                v2 Assisted Inheritance
-              </span>
+                <span className="hidden xl:inline-flex text-[10px] font-semibold bg-emerald-700/80 text-emerald-200 px-1.5 py-0.2 rounded border border-emerald-500/40">
+                  v2
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-emerald-200/90 font-medium hidden sm:block">
-              {isTa
-                ? 'கிராமப்புற வாரிசு நில ஆவண வழிகாட்டி மற்றும் விண்ணப்பத் தயாரிப்புத் தளம்'
-                : isHi
-                ? 'ग्रामीण उत्तराधिकार दस्तावेज़ीकरण एवं आवेदन तैयारी साथी'
-                : 'Assisted Inheritance Documentation & Case-Preparation Companion'}
-            </p>
+          </div>
+
+          {/* Compact Case Switcher Pill */}
+          <div className="flex items-center bg-[#074733] p-0.5 rounded-lg border border-emerald-500/30 text-[11px]">
+            <button
+              onClick={() => onSelectCase('4821')}
+              className={`px-2 py-0.5 rounded font-mono font-medium transition ${
+                selectedCaseId === '4821'
+                  ? 'bg-emerald-500 text-white font-bold shadow-xs'
+                  : 'text-emerald-200 hover:text-white'
+              }`}
+              title="Case #4821: Subramaniam Heir Transfer"
+            >
+              #4821
+            </button>
+            <button
+              onClick={() => onSelectCase('9012')}
+              className={`px-2 py-0.5 rounded font-mono font-medium transition ${
+                selectedCaseId === '9012'
+                  ? 'bg-red-600 text-white font-bold shadow-xs'
+                  : 'text-emerald-200 hover:text-white'
+              }`}
+              title="Case #9012: Poramboke Restriction"
+            >
+              #9012
+            </button>
           </div>
         </div>
 
-        {/* 3-Persona Morph Pill */}
-        <nav aria-label="Persona Selector" className="bg-[#08523B] p-1 rounded-xl flex items-center border border-emerald-500/30 shadow-inner">
+        {/* CENTER: Unified 3-Step Stepper (Replaces duplicate sub-bars!) */}
+        <nav aria-label="Workflow Stepper" className="flex items-center bg-[#08523B] p-0.5 rounded-xl border border-emerald-500/40 shadow-inner">
           <button
-            onClick={() => onSelectPersona('farmer')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              currentPersona === 'farmer'
-                ? 'bg-white text-[#0B6E4F] shadow-md scale-102 font-bold'
+            onClick={() => onSelectStep(1)}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+              activeStep === 1
+                ? 'bg-white text-[#0B6E4F] shadow-sm font-bold'
                 : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
             }`}
-            title="Act 1: Zero-Literacy Voice Intake"
           >
             <PhoneCall className="w-3.5 h-3.5" />
             <span>{isTa ? '1. விவசாயி குரல்' : isHi ? '1. किसान आवाज़' : '1. Farmer Call'}</span>
           </button>
 
-          <button
-            onClick={() => onSelectPersona('cafe')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              currentPersona === 'cafe'
-                ? 'bg-white text-[#0B6E4F] shadow-md scale-102 font-bold'
-                : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
-            }`}
-            title="Act 2 & 3: JanAI Café Desk / Document X-Ray"
-          >
-            <Monitor className="w-3.5 h-3.5" />
-            <span>{isTa ? '2. இ-சேவை மேசை' : isHi ? '2. जनएआई डेस्क' : '2. JanAI Café Desk'}</span>
-          </button>
+          <span className="text-emerald-500/60 text-xs px-0.5">➔</span>
 
           <button
-            onClick={() => onSelectPersona('guide')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              currentPersona === 'guide'
-                ? 'bg-white text-[#0B6E4F] shadow-md scale-102 font-bold'
+            onClick={() => onSelectStep(2)}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+              activeStep === 2
+                ? 'bg-white text-[#0B6E4F] shadow-sm font-bold'
                 : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
             }`}
-            title="Inheritance Path Guide & Official Pilot Tracker"
           >
-            <Scale className="w-3.5 h-3.5" />
-            <span>{isTa ? '3. வாரிசுப் பாதை & கட்டணம்' : isHi ? '3. उत्तराधिकार गाइड' : '3. Inheritance Guide'}</span>
+            <FileSearch className="w-3.5 h-3.5" />
+            <span>{isTa ? '2. ஆவண ஊடுகதிர்' : isHi ? '2. दस्तावेज़ एक्स-रे' : '2. Document X-Ray'}</span>
+          </button>
+
+          <span className="text-emerald-500/60 text-xs px-0.5">➔</span>
+
+          <button
+            onClick={() => onSelectStep(3)}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+              activeStep === 3
+                ? 'bg-white text-[#0B6E4F] shadow-sm font-bold'
+                : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
+            }`}
+          >
+            <CheckCheck className="w-3.5 h-3.5" />
+            <span>{isTa ? '3. சரிபார்ப்பு & மனு' : isHi ? '3. सत्यापन एवं निर्यात' : '3. Verify & Export'}</span>
           </button>
         </nav>
 
-        {/* Actions & Utilities */}
-        <div className="flex items-center gap-2">
-          {/* Quick Demo Runner Button */}
+        {/* RIGHT: Quick Demo + 3-Language Segmented Switch + Reset */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Quick Demo Runner */}
           <button
             onClick={onRunQuickDemo}
             disabled={isQuickDemoRunning}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-[#111827] text-xs font-bold shadow-md transition transform active:scale-95 disabled:opacity-50"
-            title="Automate the complete 60s walkthrough"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-[#111827] text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-50"
+            title="Automate 60s live walkthrough"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-900" />
-            <span>
+            <span className="hidden md:inline">
               {isQuickDemoRunning
                 ? isTa
                   ? 'இயங்குகிறது...'
                   : isHi
                   ? 'चल रहा है...'
-                  : 'Running 60s...'
+                  : 'Running...'
                 : isTa
                 ? '▶ நேரலை டெமோ'
                 : isHi
                 ? '▶ 60s लाइव केस'
-                : '▶ Run 60s Live Case'}
+                : '▶ 60s Demo'}
             </span>
           </button>
 
           {/* 3-Language Segmented Switch: [English, Tamil, Hindi] */}
           <div
-            className="flex items-center bg-[#08523B] p-0.5 rounded-lg border border-emerald-500/40 shadow-inner"
+            className="flex items-center bg-[#074733] p-0.5 rounded-lg border border-emerald-500/40"
             role="group"
-            aria-label="Language Switcher"
+            aria-label="Language"
           >
-            <Languages className="w-3.5 h-3.5 text-emerald-300 ml-1.5 mr-1" />
+            <Languages className="w-3 h-3 text-emerald-300 ml-1 mr-0.5 hidden sm:inline" />
             <button
-              onClick={() => handleLang('en')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+              onClick={() => onSelectLanguage('en')}
+              className={`px-2 py-0.5 rounded text-[11px] font-semibold transition ${
                 language === 'en'
                   ? 'bg-white text-[#0B6E4F] font-bold shadow-xs'
-                  : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
+                  : 'text-emerald-200 hover:text-white'
               }`}
               title="English (Default)"
             >
-              English
+              EN
             </button>
             <button
-              onClick={() => handleLang('ta')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+              onClick={() => onSelectLanguage('ta')}
+              className={`px-2 py-0.5 rounded text-[11px] font-semibold transition ${
                 language === 'ta'
                   ? 'bg-white text-[#0B6E4F] font-bold shadow-xs'
-                  : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
+                  : 'text-emerald-200 hover:text-white'
               }`}
-              title="தமிழ் (Tamil)"
+              title="தமிழ்"
             >
               தமிழ்
             </button>
             <button
-              onClick={() => handleLang('hi')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+              onClick={() => onSelectLanguage('hi')}
+              className={`px-2 py-0.5 rounded text-[11px] font-semibold transition ${
                 language === 'hi'
                   ? 'bg-white text-[#0B6E4F] font-bold shadow-xs'
-                  : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
+                  : 'text-emerald-200 hover:text-white'
               }`}
-              title="हिन्दी (Hindi)"
+              title="हिन्दी"
             >
               हिन्दी
             </button>
           </div>
 
-          {/* Reset Demo Button */}
+          {/* Reset Demo */}
           <button
             onClick={onReset}
-            className="p-1.5 rounded-lg bg-[#08523B] hover:bg-[#053828] text-emerald-200 hover:text-white border border-emerald-500/40 transition"
+            className="p-1 rounded-lg bg-[#074733] hover:bg-[#053828] text-emerald-200 hover:text-white border border-emerald-500/30 transition"
             title="Reset to initial state"
           >
             <RotateCcw className="w-3.5 h-3.5" />
