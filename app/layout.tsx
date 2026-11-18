@@ -38,8 +38,12 @@ export default function RootLayout({
     <html
       lang="ta"
       className={`${plusJakarta.variable} ${notoSansTamil.variable} ${jetbrainsMono.variable} antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-screen bg-[#F4F7F5] text-[#111827] flex flex-col font-sans">
+      <body
+        className="min-h-screen bg-[#F4F7F5] text-[#111827] flex flex-col font-sans"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>
