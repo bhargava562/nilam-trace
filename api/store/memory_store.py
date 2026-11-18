@@ -1,281 +1,408 @@
-"""Thread-Safe In-Memory Store with Canonical Tamil Nadu Demo Cases
-
-Hydrates on boot:
-- Case #4821: Thiruvallur Loan Rescue (Deceased Father + -4.76 Cents Shrinkage + UDR Survey Link)
-- Case #9012: Poramboke Red-Zone Trap (Meikkal Poramboke Communal Land)
+"""NilamTrace v2 Thread-Safe In-Memory Store
+Pre-hydrates canonical test cases #4821 and #9012 on cold boot.
 """
-import copy
+from copy import deepcopy
+from datetime import datetime
 import threading
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
-
+from typing import Any, Dict, List, Optional
 from api.models.schemas import (
     CaseState,
-    Discrepancy,
-    DiscrepancyType,
-    DiscrepancySeverity,
-    FamilyShare,
+    DocumentInventoryItem,
+    DocumentStatus,
+    InheritancePath,
+    ShrinkageResult,
+    VerifiedField,
+    VoluntaryHeirStatement,
+)
+from api.services.inheritance_rules import (
+    check_field_confidence,
+    evaluate_case_readiness,
 )
 
 
-def _get_utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def build_canonical_cases() -> Dict[str, CaseState]:
-    """Factory creating pristine canonical demo cases."""
-    now = _get_utc_now()
-    
-    # Case #4821: Thiruvallur Loan Rescue
-    case_4821 = CaseState(
-        case_id="4821",
-        case_title="Thiruvallur Loan Rescue: Deceased Father + -4.76 Cents Shrinkage + UDR Survey Link",
-        case_title_ta="திருவள்ளூர் கடன் மீட்பு: மறைந்த தந்தை + -4.76 சென்ட் குறைவு + UDR சர்வே இணைப்பு",
-        applicant_name="S. Murugan",
-        applicant_name_ta="எஸ். முருகன்",
-        phone="+91 98401 23456",
-        district="Thiruvallur",
-        taluk="Ponneri",
-        village="Perumbedu",
-        old_survey_no="45/2",
-        new_survey_no="114/2B",
-        patta_no="1042",
-        deed_area_raw="48 Cents",
-        deed_area_cents=48.0,
-        patta_area_raw="0.17.5 Hectares",
-        patta_area_cents=43.24,
-        area_delta_cents=-4.76,
-        land_classification="Ryotwari Manai",
-        is_red_zone=False,
-        status="ANALYZED",
-        loan_eligibility="ELIGIBLE_POST_MUTATION",
-        loan_eligibility_ta="வாரிசு பட்டா மாறுதலுக்குப் பின் கடன் பெற தகுதி உண்டு",
-        hitl_approved=False,
-        created_at=now,
-        updated_at=now,
-        discrepancies=[
-            Discrepancy(
-                id="DISC-4821-01",
-                type=DiscrepancyType.AREA_SHRINKAGE_UNRECORDED_SUBDIVISION,
-                severity=DiscrepancySeverity.WARNING,
-                title="Area Shrinkage: -4.76 Cents Unrecorded Subdivision",
-                title_ta="பரப்பளவு குறைவு: -4.76 சென்ட் பதிவு செய்யப்படாத உட்பிரிவு",
-                description=(
-                    "Sale Deed (1994) conveys 48.00 Cents, but Tamil Nilam Patta (2024) records "
-                    "0.17.5 Hectares (43.24 Cents). Net shrinkage of -4.76 Cents exceeds ±0.48 Cents "
-                    "survey conversion tolerance. Likely unrecorded subdivision or village road expansion."
-                ),
-                description_ta=(
-                    "1994 கிரையப் பத்திரத்தில் 48.00 சென்ட் உள்ளது, ஆனால் 2024 பட்டாவில் 0.17.5 ஹெக்டேர் "
-                    "(43.24 சென்ட்) மட்டுமே உள்ளது. -4.76 சென்ட் குறைவு அனுமதிக்கப்பட்ட விலக்குக்கு மேல் உள்ளது. "
-                    "பதிவு செய்யப்படாத உட்பிரிவு அல்லது சாலை விரிவாக்கம் காரணமாக இருக்கலாம்."
-                ),
-                source_doc="Sale Deed 1994 (Doc No. 142/1994)",
-                target_doc="Tamil Nilam Patta No. 1042",
-                deed_value="48.00 Cents",
-                patta_value="43.24 Cents (0.17.5 Ha)",
-                delta="-4.76 Cents",
-                resolved=False,
-                action_required="Sanction bank mortgage strictly on net verified 43.24 Cents, protecting collateral risk.",
-                action_required_ta="வங்கி கடன் மதிப்பீட்டை 43.24 சென்ட் அளவிற்கு கட்டுப்படுத்தி பாதுகாப்பு உறுதி செய்யவும்.",
-            ),
-            Discrepancy(
-                id="DISC-4821-02",
-                type=DiscrepancyType.MISSING_INHERITANCE_MUTATION,
-                severity=DiscrepancySeverity.WARNING,
-                title="Missing Inheritance Mutation: Registered Pattadhar Deceased",
-                title_ta="வாரிசுரிமை பட்டா மாறுதல் நிலுவை: பட்டாதாரர் இறந்துவிட்டார்",
-                description=(
-                    "Registered pattadhar K. Subramanian deceased in 2021. Patta remains in deceased father's name. "
-                    "Applicant S. Murugan and sister S. Selvi are co-parceners. Under Hindu Succession Act, "
-                    "single signature mortgage is defective without co-heir consent or formal mutation."
-                ),
-                description_ta=(
-                    "பட்டாதாரர் கே. சுப்பிரமணியன் 2021 இல் மறைந்தார். பட்டா இன்னமும் தந்தை பெயரிலேயே உள்ளது. "
-                    "விண்ணப்பதாரர் எஸ். முருகன் மற்றும் சகோதரி எஸ். செல்வி கூட்டு வாரிசுதாரர்கள். "
-                    "இருவரின் ஒப்புதல் அல்லது வாரிசு பட்டா மாறுதல் அவசியம்."
-                ),
-                source_doc="Patta Passbook No. 1042",
-                target_doc="Legal Heir Certificate (TN-LH-2022-891)",
-                resolved=False,
-                action_required="Complete Speakerphone Legal Heir verification and execute Joint Consent / VAO attestation.",
-                action_required_ta="வாரிசுதாரர் தொலைபேசி ஒப்புதல் பெற்று கிராம நிர்வாக அலுவலர் (VAO) சான்றொப்பம் பெறவும்.",
-            ),
-            Discrepancy(
-                id="DISC-4821-03",
-                type=DiscrepancyType.RESOLVED_UDR_SURVEY_LINK,
-                severity=DiscrepancySeverity.RESOLVED,
-                title="Resolved UDR Survey Link: Old S.No 45/2 -> New S.No 114/2B",
-                title_ta="தீர்க்கப்பட்ட UDR சர்வே எண்: பழைய சர்வே எண் 45/2 -> புதிய சர்வே எண் 114/2B",
-                description=(
-                    "Sale Deed references Old Survey No. 45/2. Verified official correlation to Post-UDR "
-                    "Survey No. 114/2B in Perumbedu Village Field Correlation Register (FCR 1984)."
-                ),
-                description_ta=(
-                    "கிரையப் பத்திரம் பழைய சர்வே எண் 45/2-ஐக் குறிப்பிடுகிறது. பெரும்பேடு கிராம UDR புல ஒப்புமைப் "
-                    "பதிவேட்டின்படி புதிய சர்வே எண் 114/2B உடன் துல்லியமாகப் பொருந்துகிறது."
-                ),
-                source_doc="Pre-UDR Sale Deed (1994)",
-                target_doc="Post-UDR Patta (2024)",
-                deed_value="45/2",
-                patta_value="114/2B",
-                resolved=True,
-                resolution_note="Chain-of-title survey continuity verified with zero mismatch.",
-                resolution_note_ta="நில உரிமை சங்கிலி தொடர்ச்சி உறுதி செய்யப்பட்டது.",
-            ),
-        ],
-        family_shares=[
-            FamilyShare(
-                person_id="P1",
-                name="S. Murugan",
-                name_ta="எஸ். முருகன்",
-                relationship="Son",
-                legal_heir_certificate_ref="TN-LH-2022-891",
-                share_percentage=50.0,
-                share_cents=21.62,
-                consent_status="CONSENTED",
-                consent_timestamp="2026-11-18T10:30:00Z",
-                phone_last4="2345",
-            ),
-            FamilyShare(
-                person_id="P2",
-                name="S. Selvi",
-                name_ta="எஸ். செல்வி",
-                relationship="Daughter",
-                legal_heir_certificate_ref="TN-LH-2022-891",
-                share_percentage=50.0,
-                share_cents=21.62,
-                consent_status="PENDING",
-                consent_timestamp=None,
-                phone_last4="9812",
-            ),
-        ],
-        timeline=[
-            {"step": "INTAKE_CALL", "time": now, "note": "Farmer voice intake via missed call / Web Speech"},
-            {"step": "AI_EXTRACT", "time": now, "note": "Extracted 1994 Sale Deed & 2024 Patta records"},
-            {"step": "SHRINKAGE_AUDIT", "time": now, "note": "Flagged -4.76 Cents delta (48.0 -> 43.24 Cents)"},
-            {"step": "UDR_LINK", "time": now, "note": "Old S.No 45/2 mapped to New S.No 114/2B"},
-            {"step": "HEIR_CHECK", "time": now, "note": "Deceased pattadhar flagged; Murugan 50%, Selvi 50%"},
-        ],
-    )
-
-    # Case #9012: Poramboke Red-Zone Trap
-    case_9012 = CaseState(
-        case_id="9012",
-        case_title="Poramboke Red-Zone Trap: Meikkal Poramboke Grazing Land",
-        case_title_ta="புறம்போக்கு சிவப்பு மண்டல பொறி: மேய்க்கால் புறம்போக்கு நிலம்",
-        applicant_name="R. Kathirvel",
-        applicant_name_ta="ஆர். கதிர்வேல்",
-        phone="+91 97890 54321",
-        district="Chengalpattu",
-        taluk="Thiruporur",
-        village="Illalur",
-        old_survey_no="88/1",
-        new_survey_no="88/1",
-        patta_no="N/A (Prohibited)",
-        deed_area_raw="2.50 Acres",
-        deed_area_cents=250.0,
-        patta_area_raw="0.00 (Government Poramboke)",
-        patta_area_cents=0.0,
-        area_delta_cents=-250.0,
-        land_classification="Meikkal Poramboke (Government Grazing Ground)",
-        is_red_zone=True,
-        red_zone_reason=(
-            "Land is classified as Meikkal Poramboke (Communal Grazing Reserve). "
-            "Under Section 2 of TN Land Encroachment Act 1905 & Madras High Court rulings, "
-            "private mortgage and alienation are strictly prohibited."
-        ),
-        red_zone_reason_ta=(
-            "நில வகைப்பாடு மேய்க்கால் புறம்போக்கு (அரசு மேய்ச்சல் தரை) என வகைப்படுத்தப்பட்டுள்ளது. "
-            "தமிழ்நாடு நில ஆக்கிரமிப்பு சட்டம் 1905 பிரிவு 2 மற்றும் உயர்நீதிமன்ற தீர்ப்பின்படி, "
-            "இதன் மீது கடன் வழங்கவோ விற்கவோ சட்டப்படி அனுமதியில்லை."
-        ),
-        status="REJECTED_RED_ZONE",
-        loan_eligibility="CRITICAL_RED_ZONE_BLOCKED",
-        loan_eligibility_ta="கடன் பெற தகுதியற்றது - அரசு புறம்போக்கு / மேய்க்கால் நிலம்",
-        hitl_approved=False,
-        created_at=now,
-        updated_at=now,
-        discrepancies=[
-            Discrepancy(
-                id="DISC-9012-01",
-                type=DiscrepancyType.CRITICAL_RED_ZONE_BLOCK,
-                severity=DiscrepancySeverity.CRITICAL,
-                title="CRITICAL RED-ZONE: Meikkal Poramboke Communal Land",
-                title_ta="ஆபத்தான சிவப்பு மண்டலம்: மேய்க்கால் புறம்போக்கு நிலம்",
-                description=(
-                    "Village A-Register confirms Survey No. 88/1 is Meikkal Poramboke (Communal Grazing Ground). "
-                    "Unscrupulous sellers attempted private deed registration. Commercial lending legally prohibited. "
-                    "Application must be immediately rejected to prevent non-performing asset (NPA) foreclosure failure."
-                ),
-                description_ta=(
-                    "கிராம 'அ' பதிவேட்டின்படி சர்வே எண் 88/1 மேய்க்கால் புறம்போக்கு நிலமாகும். "
-                    "இதை தனிநபர் கிரையம் செய்தது செல்லாது. வங்கி கடன் வழங்க முற்றிலும் தடை விதிக்கப்பட்டுள்ளது."
-                ),
-                source_doc="A-Register / Settlement Record",
-                target_doc="Mortgage Loan Application",
-                resolved=False,
-                action_required="IMMEDIATE REJECTION: Prohibited government land. Alert District Collectorate.",
-                action_required_ta="விண்ணப்பத்தை உடனடியாக நிராகரிக்கவும்: அரசு புறம்போக்கு நிலம்.",
-            )
-        ],
-        family_shares=[],
-        timeline=[
-            {"step": "INTAKE_CALL", "time": now, "note": "Loan application received for Survey No. 88/1"},
-            {"step": "RED_ZONE_GATE", "time": now, "note": "Halted: Classified as Meikkal Poramboke"},
-        ],
-    )
-
-    return {
-        "4821": case_4821,
-        "9012": case_9012,
-    }
-
-
-class CaseMemoryStore:
-    """Thread-safe in-memory case store."""
+class MemoryStore:
+    """Thread-safe state repository for active multi-visit inheritance cases."""
 
     def __init__(self):
         self._lock = threading.Lock()
         self._cases: Dict[str, CaseState] = {}
-        self.reset_to_canonical()
+        self._hydrate_canonical_cases()
 
-    def reset_to_canonical(self) -> None:
-        """Reset cases back to default pristine canonical demo records."""
-        with self._lock:
-            self._cases = build_canonical_cases()
+    def _hydrate_canonical_cases(self):
+        """Pre-seeds canonical demo cases #4821 and #9012 for instant evaluation."""
+        now_iso = datetime.now().isoformat()
+
+        # Case #4821: Thiruvallur Inheritance Case (Late father Subramaniam)
+        # Demonstrates: Missing REV-114 Legal Heir Certificate + Unverified OCR Fields + -4.76 Cents Math Check
+        case_4821_inventory = [
+            DocumentInventoryItem(
+                doc_type="DEATH_CERTIFICATE",
+                doc_name="Municipality Death Certificate",
+                doc_name_ta="இறப்புச் சான்றிதழ்",
+                status=DocumentStatus.AVAILABLE,
+                how_to_obtain_en="Issued by Municipal / Town Panchayat Registrar of Births and Deaths.",
+                how_to_obtain_ta="நகராட்சி / பேரூராட்சி பிறப்பு இறப்பு பதிவாளரால் வழங்கப்பட்டது.",
+                official_fee_inr=0.0,
+                mandatory_for_patta=True,
+                uploaded_filename="case_4821_death_cert.pdf",
+            ),
+            DocumentInventoryItem(
+                doc_type="SALE_DEED",
+                doc_name="1994 Registered Parent Sale Deed (Doc No: 1420/1994)",
+                doc_name_ta="1994 கிரையப் பத்திரம் (ஆவண எண்: 1420/1994)",
+                status=DocumentStatus.AVAILABLE,
+                how_to_obtain_en="Retrieved from family records or certified copy from Sub-Registrar Office via TNREGINET.",
+                how_to_obtain_ta="சார்பதிவாளர் அலுவலக நகல் அல்லது குடும்ப மூல ஆவணம்.",
+                official_fee_inr=0.0,
+                mandatory_for_patta=True,
+                uploaded_filename="case_4821_sale_deed_1994.pdf",
+            ),
+            DocumentInventoryItem(
+                doc_type="PATTA",
+                doc_name="Current Integrated Land Record / Patta (Old S.No 45/2 -> New S.No 114/2B)",
+                doc_name_ta="தற்போதைய தமிழ்நில கணினிப் பட்டா",
+                status=DocumentStatus.AVAILABLE,
+                how_to_obtain_en="Downloaded from eservices.tn.gov.in using citizen mobile OTP.",
+                how_to_obtain_ta="eservices.tn.gov.in தளத்தில் பதிவிறக்கம் செய்யப்பட்டது.",
+                official_fee_inr=0.0,
+                mandatory_for_patta=True,
+                uploaded_filename="case_4821_patta_2024.pdf",
+            ),
+            DocumentInventoryItem(
+                doc_type="LEGAL_HEIR_REV114",
+                doc_name="Tahsildar Legal Heirship Certificate (e-Sevai REV-114)",
+                doc_name_ta="வட்டாட்சியர் வாரிசுச் சான்றிதழ் (REV-114)",
+                status=DocumentStatus.MISSING_TO_OBTAIN,
+                how_to_obtain_en="Apply at nearest e-Sevai centre with Death Cert, Ration Card, Aadhaar, and Marriage Proof.",
+                how_to_obtain_ta="இறப்புச் சான்றிதழ், குடும்ப அட்டை, ஆதார் அட்டையுடன் அருகில் உள்ள இ-சேவை மையத்தில் விண்ணப்பிக்கவும்.",
+                official_fee_inr=60.0,
+                mandatory_for_patta=True,
+                uploaded_filename=None,
+            ),
+        ]
+
+        raw_fields_4821 = {
+            "deceased_owner": VerifiedField(
+                field_name="deceased_owner",
+                extracted_value="A. Subramaniam",
+                confidence=0.94,
+                page_num=1,
+                bbox=[72.0, 140.0, 280.0, 160.0],
+                human_verified=False,
+            ),
+            "applicant_name": VerifiedField(
+                field_name="applicant_name",
+                extracted_value="S. Selvaraj",
+                confidence=0.91,
+                page_num=1,
+                bbox=[72.0, 170.0, 250.0, 190.0],
+                human_verified=False,
+            ),
+            "survey_no": VerifiedField(
+                field_name="survey_no",
+                extracted_value="114/2B",
+                confidence=0.96,
+                page_num=1,
+                bbox=[72.0, 210.0, 200.0, 230.0],
+                human_verified=False,
+            ),
+            "subdivision": VerifiedField(
+                field_name="subdivision",
+                extracted_value="2B",
+                confidence=0.81,  # < 0.85 threshold! Requires operator manual check
+                page_num=1,
+                bbox=[205.0, 210.0, 240.0, 230.0],
+                human_verified=False,
+            ),
+            "doc_date": VerifiedField(
+                field_name="doc_date",
+                extracted_value="1994-08-14",
+                confidence=0.89,
+                page_num=2,
+                bbox=[300.0, 700.0, 450.0, 720.0],
+                human_verified=False,
+            ),
+            "extent": VerifiedField(
+                field_name="extent",
+                extracted_value="0.17.5 Ha (43.24 Cents)",
+                confidence=0.93,
+                page_num=1,
+                bbox=[72.0, 250.0, 320.0, 270.0],
+                human_verified=False,
+            ),
+        }
+        # Run confidence checks
+        case_4821_fields = {k: check_field_confidence(v) for k, v in raw_fields_4821.items()}
+
+        case_4821_heirs = [
+            VoluntaryHeirStatement(
+                heir_name="S. Murugan",
+                heir_name_ta="எஸ். முருகன்",
+                relation="Son (Elder Brother)",
+                relation_ta="மகன் (மூத்த சகோதரர்)",
+                age=62,
+                attributed_to="Applicant voluntary oral statement",
+                disclaimer_acknowledged=True,
+            ),
+            VoluntaryHeirStatement(
+                heir_name="S. Selvi",
+                heir_name_ta="எஸ். செல்வி",
+                relation="Daughter (Sister)",
+                relation_ta="மகள் (சகோதரி)",
+                age=55,
+                attributed_to="Applicant voluntary oral statement",
+                disclaimer_acknowledged=True,
+            ),
+            VoluntaryHeirStatement(
+                heir_name="S. Selvaraj",
+                heir_name_ta="எஸ். செல்வராஜ்",
+                relation="Son (Applicant)",
+                relation_ta="மகன் (விண்ணப்பதாரர்)",
+                age=58,
+                attributed_to="Applicant voluntary oral statement",
+                disclaimer_acknowledged=True,
+            ),
+        ]
+
+        case_4821 = CaseState(
+            case_id="4821",
+            case_title="Thiruvallur Inherited Land Case (Late father Subramaniam)",
+            case_title_ta="திருவள்ளூர் பரம்பரை நில உரிமை (மறைந்த தந்தை சுப்பிரமணியம்)",
+            applicant_name="S. Selvaraj",
+            applicant_name_ta="எஸ். செல்வராஜ்",
+            phone="9840124821",
+            district="Thiruvallur",
+            taluk="Thiruvallur",
+            village="Pakkam",
+            old_survey_no="45/2",
+            new_survey_no="114/2B",
+            patta_no="382",
+            deceased_name="A. Subramaniam",
+            deceased_name_ta="ஏ. சுப்பிரமணியம்",
+            date_of_death="2018-06-12",
+            status="MISSING_DOCS_PENDING",
+            chosen_path=InheritancePath.UNDECIDED,
+            rev114_available=False,
+            death_certificate_available=True,
+            critical_fields_verified=False,
+            ready_for_patta_transfer=False,
+            inventory=case_4821_inventory,
+            verified_fields=case_4821_fields,
+            heir_statements=case_4821_heirs,
+            deed_area_cents=48.0,
+            patta_area_cents=43.24,
+            area_delta_cents=-4.76,
+            area_consistency=ShrinkageResult(
+                deed_cents=48.0,
+                patta_cents=43.24,
+                delta_cents=-4.76,
+                percentage_loss=9.92,
+                threshold_epsilon=0.48,
+                is_shrinkage=True,
+                explanation="4.76 Cents reduction between 1994 Sale Deed and 2024 Patta. Likely unrecorded family subdivision or road widening buffer.",
+                explanation_ta="1994 கிரையப் பத்திரத்திற்கும் 2024 பட்டாவிற்கும் இடையே 4.76 சென்ட் குறைபாடு உள்ளது.",
+            ),
+            pilot_metrics={
+                "official_fees_inr": 60.0,
+                "operator_minutes_spent": 12,
+                "family_willingness_to_pay_inr": 300,
+                "est_broker_avoided_cost_inr": 15000,
+            },
+            hitl_approved=False,
+            created_at=now_iso,
+            updated_at=now_iso,
+            timeline=[
+                {"timestamp": now_iso, "event": "Missed Call Received from 9840124821", "actor": "Farmer S. Selvaraj"},
+                {"timestamp": now_iso, "event": "Pocket Code 4821 Generated with REV-114 Checklist", "actor": "NilamTrace Voice Engine"},
+            ],
+        )
+
+        # Case #9012: Poramboke / Restricted Land Case
+        case_9012 = CaseState(
+            case_id="9012",
+            case_title="Pakkam Village Meikkal Poramboke Restriction",
+            case_title_ta="பாக்கம் கிராம மேய்ச்சல் புறம்போக்கு நிலம்",
+            applicant_name="K. Arumugam",
+            applicant_name_ta="கே. ஆறுமுகம்",
+            phone="9444009012",
+            district="Thiruvallur",
+            taluk="Thiruvallur",
+            village="Pakkam",
+            old_survey_no="88/1",
+            new_survey_no="204/1A",
+            patta_no=None,
+            deceased_name="Late K. Kuppusamy",
+            deceased_name_ta="மறைந்த கே. குப்புசாமி",
+            date_of_death="2012-04-10",
+            status="MISSING_DOCS_PENDING",
+            chosen_path=InheritancePath.UNDECIDED,
+            rev114_available=False,
+            death_certificate_available=False,
+            critical_fields_verified=False,
+            ready_for_patta_transfer=False,
+            inventory=[
+                DocumentInventoryItem(
+                    doc_type="A_REGISTER",
+                    doc_name="Village A-Register Extract (Meikkal Poramboke)",
+                    doc_name_ta="கிராம ‘அ’ பதிவேடு (மேய்ச்சல் புறம்போக்கு)",
+                    status=DocumentStatus.AVAILABLE,
+                    how_to_obtain_en="A-Register extract obtained from Taluk Record Room.",
+                    how_to_obtain_ta="வட்டாட்சியர் அலுவலக ஆவணக் காப்பக நகல்.",
+                    official_fee_inr=0.0,
+                    mandatory_for_patta=True,
+                    uploaded_filename="case_9012_aregister_meikkal.pdf",
+                ),
+                DocumentInventoryItem(
+                    doc_type="LEGAL_HEIR_REV114",
+                    doc_name="Legal Heir Certificate",
+                    doc_name_ta="வாரிசுச் சான்றிதழ்",
+                    status=DocumentStatus.MISSING_TO_OBTAIN,
+                    how_to_obtain_en="Apply at e-Sevai first.",
+                    how_to_obtain_ta="முதலில் இ-சேவை மையத்தில் விண்ணப்பிக்கவும்.",
+                    official_fee_inr=60.0,
+                    mandatory_for_patta=True,
+                ),
+            ],
+            verified_fields={
+                "deceased_owner": VerifiedField(
+                    field_name="deceased_owner",
+                    extracted_value="Late K. Kuppusamy",
+                    confidence=0.88,
+                    human_verified=False,
+                ),
+                "survey_no": VerifiedField(
+                    field_name="survey_no",
+                    extracted_value="204/1A",
+                    confidence=0.95,
+                    human_verified=False,
+                ),
+            },
+            heir_statements=[],
+            deed_area_cents=100.0,
+            patta_area_cents=0.0,
+            area_delta_cents=-100.0,
+            pilot_metrics={"official_fees_inr": 60.0, "operator_minutes_spent": 8},
+            hitl_approved=False,
+            created_at=now_iso,
+            updated_at=now_iso,
+            timeline=[
+                {"timestamp": now_iso, "event": "A-Register Scan uploaded. Restricted Meikkal tenure identified.", "actor": "JanAI Operator"},
+            ],
+        )
+
+        self._cases["4821"] = case_4821
+        self._cases["9012"] = case_9012
 
     def get_case(self, case_id: str) -> Optional[CaseState]:
-        """Fetch case by ID (returns a deep copy to prevent race conditions)."""
         with self._lock:
-            case = self._cases.get(str(case_id))
-            return copy.deepcopy(case) if case else None
-
-    def list_cases(self) -> List[CaseState]:
-        """List all active cases."""
-        with self._lock:
-            return [copy.deepcopy(c) for c in self._cases.values()]
+            case = self._cases.get(case_id)
+            return deepcopy(case) if case else None
 
     def save_case(self, case: CaseState) -> CaseState:
-        """Save or overwrite a case state."""
         with self._lock:
-            case.updated_at = _get_utc_now()
-            self._cases[case.case_id] = copy.deepcopy(case)
-            return copy.deepcopy(case)
+            case.updated_at = datetime.now().isoformat()
+            # Re-evaluate case readiness status
+            evaluate_case_readiness(case)
+            self._cases[case.case_id] = deepcopy(case)
+            return deepcopy(case)
 
-    def update_case(self, case_id: str, updates: Dict[str, Any]) -> Optional[CaseState]:
-        """Partially update case fields."""
+    def list_cases(self) -> List[CaseState]:
         with self._lock:
-            if case_id not in self._cases:
+            return [deepcopy(c) for c in self._cases.values()]
+
+    def verify_field(
+        self,
+        case_id: str,
+        field_name: str,
+        is_verified: bool = True,
+        corrected_value: Optional[Any] = None,
+        notes: Optional[str] = None,
+    ) -> Optional[CaseState]:
+        """Operator explicitly verifies or corrects an extracted field."""
+        with self._lock:
+            case = self._cases.get(case_id)
+            if not case:
                 return None
-            case = self._cases[case_id]
-            case_data = case.model_dump()
-            case_data.update(updates)
-            case_data["updated_at"] = _get_utc_now()
-            updated_case = CaseState.model_validate(case_data)
-            self._cases[case_id] = updated_case
-            return copy.deepcopy(updated_case)
+
+            field = case.verified_fields.get(field_name)
+            if not field:
+                field = VerifiedField(field_name=field_name, extracted_value=corrected_value or "")
+
+            field.human_verified = is_verified
+            field.verified_by_operator = is_verified
+            if corrected_value is not None:
+                field.corrected_value = corrected_value
+            if notes:
+                field.operator_notes = notes
+
+            case.verified_fields[field_name] = field
+            case.timeline.append({
+                "timestamp": datetime.now().isoformat(),
+                "event": f"Field '{field_name}' verified by operator (value: {corrected_value or field.extracted_value})",
+                "actor": "JanAI Operator",
+            })
+            evaluate_case_readiness(case)
+            self._cases[case_id] = deepcopy(case)
+            return deepcopy(case)
+
+    def update_document_status(
+        self,
+        case_id: str,
+        doc_type: str,
+        status: DocumentStatus,
+    ) -> Optional[CaseState]:
+        """Updates document availability in the multi-visit inventory."""
+        with self._lock:
+            case = self._cases.get(case_id)
+            if not case:
+                return None
+
+            found = False
+            for item in case.inventory:
+                if item.doc_type == doc_type:
+                    item.status = status
+                    found = True
+                    break
+
+            if not found:
+                case.inventory.append(
+                    DocumentInventoryItem(
+                        doc_type=doc_type,
+                        doc_name=doc_type,
+                        doc_name_ta=doc_type,
+                        status=status,
+                        how_to_obtain_en="Uploaded by operator",
+                        how_to_obtain_ta="பதிவேற்றம் செய்யப்பட்டது",
+                    )
+                )
+
+            case.timeline.append({
+                "timestamp": datetime.now().isoformat(),
+                "event": f"Document '{doc_type}' status updated to {status.value}",
+                "actor": "JanAI Operator",
+            })
+            evaluate_case_readiness(case)
+            self._cases[case_id] = deepcopy(case)
+            return deepcopy(case)
+
+    def select_path(self, case_id: str, path: InheritancePath) -> Optional[CaseState]:
+        """Records family's chosen administrative path (Joint Patta vs Release Deed)."""
+        with self._lock:
+            case = self._cases.get(case_id)
+            if not case:
+                return None
+
+            case.chosen_path = path
+            case.timeline.append({
+                "timestamp": datetime.now().isoformat(),
+                "event": f"Inheritance path chosen: {path.value}",
+                "actor": "Family / JanAI Operator",
+            })
+            evaluate_case_readiness(case)
+            self._cases[case_id] = deepcopy(case)
+            return deepcopy(case)
 
 
-# Global singleton instance
-case_store = CaseMemoryStore()
+# Global singleton
+store = MemoryStore()
+case_store = store

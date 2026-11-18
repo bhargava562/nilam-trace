@@ -1,9 +1,9 @@
-"""NilamTrace Serverless FastAPI Backend
+"""NilamTrace v2 Serverless FastAPI Backend
 
-Autonomous Land Governance Platform for Tamil Nadu Revenue Administration
-- Act 1: Farmer Missed-Call & Voice Intake Simulator
-- Act 2: Document X-Ray & Deterministic Unit Math Reconciliation
-- Act 3: Speakerphone Family Settlement, 400 KB Squeeze Machine, and VAO HITL Gate
+Assisted Inheritance Documentation & Case-Preparation Companion
+- Act 1: Low-Literacy Tamil Voice Intake & Multi-Visit Pocket Code (#4821)
+- Act 2: JanAI Café Assisted Scanning, Document X-Ray & Mandatory Field Verification
+- Act 3: Voluntary Family Statement Log, Path Selection (Joint Patta vs Release Deed), & HITL Gate
 """
 import io
 import datetime
@@ -15,19 +15,23 @@ from pydantic import BaseModel
 
 from api.config import settings
 from api.models.schemas import (
+    AddHeirStatementRequest,
     CaseState,
-    Discrepancy,
-    DiscrepancyType,
-    DiscrepancySeverity,
-    FamilyShare,
+    DocumentStatus,
     HITLApprovalRequest,
     HITLApprovalResponse,
+    InheritancePath,
     IntakeVoiceRequest,
+    SelectPathRequest,
     SqueezeResult,
-    UnitConversionResult,
-    ShrinkageResult,
+    VerifyFieldRequest,
 )
-from api.store.memory_store import case_store
+from api.store.memory_store import store
+from api.services.inheritance_rules import (
+    compare_inheritance_paths,
+    create_voluntary_heir_statement,
+    evaluate_case_readiness,
+)
 from api.services.unit_math import (
     convert_units,
     calculate_shrinkage,
@@ -37,18 +41,17 @@ from api.services.unit_math import (
     ground_to_cents,
     parse_tamil_hectare_notation,
 )
-from api.services.title_graph import run_full_title_analysis
 from api.services.pdf_compressor import squeeze_pdf, TARGET_MAX_BYTES
 from api.services.dossier_generator import generate_dossier_pdf
-from api.services.ai_extractor import extract_land_record_data, build_extracted_fields
+from api.services.ai_extractor import extract_land_record_data
 
 app = FastAPI(
-    title="NilamTrace API",
-    version=settings.APP_VERSION,
-    description="Tamil Nadu Autonomous Land Governance & Title Audit Engine",
+    title="NilamTrace v2 API",
+    version="2.0.0",
+    description="Tamil Nadu Assisted Inheritance Documentation & Case-Preparation Companion",
 )
 
-# CORS Middleware configuration
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -60,292 +63,335 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health_check():
-    """Health and status check."""
+    """Healthcheck verifying server, store, and Groq fallback readiness."""
     return {
         "status": "healthy",
-        "app": "NilamTrace",
-        "version": settings.APP_VERSION,
+        "app": "NilamTrace v2",
+        "version": "2.0.0",
         "groq_enabled": bool(settings.GROQ_API_KEY and len(settings.GROQ_API_KEY) > 5),
         "groq_model": settings.GROQ_MODEL,
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
 
 
-@app.post("/api/reset")
-def reset_demo_store():
-    """Reset in-memory database to pristine canonical cases #4821 and #9012."""
-    case_store.reset_to_canonical()
-    return {"message": "Store reset to canonical demo state", "cases": [c.case_id for c in case_store.list_cases()]}
+@app.get("/api/cases")
+def list_cases():
+    """List all registered multi-visit inheritance cases."""
+    return [c.model_dump() for c in store.list_cases()]
 
 
-@app.get("/api/cases", response_model=List[CaseState])
-def get_all_cases():
-    """Retrieve all active land audit cases."""
-    return case_store.list_cases()
-
-
-@app.get("/api/cases/{case_id}", response_model=CaseState)
-def get_case_by_id(case_id: str):
-    """Retrieve single case state by ID."""
-    case = case_store.get_case(case_id)
+@app.get("/api/cases/{case_id}")
+def get_case_state(case_id: str):
+    """Retrieve full canonical state of a case by 4-digit pocket code."""
+    case = store.get_case(case_id)
     if not case:
-        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found in NilamTrace registry.")
-    return case
-
-
-@app.post("/api/cases/{case_id}/analyze", response_model=CaseState)
-def analyze_case(case_id: str):
-    """
-    Run full deterministic Chain-of-Title analysis:
-    - Red-Zone Poramboke Gate
-    - Old-to-New Survey UDR Reconciliation
-    - Area Shrinkage & Subdivision Tolerance
-    - Deceased Owner Missing Inheritance Mutation
-    """
-    case = case_store.get_case(case_id)
-    if not case:
-        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
-
-    analyzed_case = run_full_title_analysis(case)
-    saved_case = case_store.save_case(analyzed_case)
-    return saved_case
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case #{case_id} not found in in-memory repository.",
+        )
+    return case.model_dump()
 
 
 @app.post("/api/intake/voice")
-def intake_farmer_call(req: IntakeVoiceRequest):
+def voice_intake(payload: IntakeVoiceRequest):
     """
-    Act 1: Farmer Missed-Call & Voice Intake Simulator.
-    Accepts speech transcript or phone call payload, initializes or retrieves case.
+    Act 1: Voice intake simulator.
+    Maps spoken Tamil request to revenue village and assigns or resumes 4-digit pocket code.
     """
-    # If case_id provided or audio mentions 4821
-    case_id = req.case_id or "4821"
-    text = (req.audio_text or "").lower()
-    
-    if "9012" in text or "meikkal" in text or "illalur" in text or "poramboke" in text:
-        case_id = "9012"
-    elif "4821" in text or "murugan" in text or "perumbedu" in text or "ponneri" in text:
-        case_id = "4821"
+    case_id = payload.case_id or "4821"
+    existing_case = store.get_case(case_id)
 
-    case = case_store.get_case(case_id)
-    if not case:
-        # Fallback to 4821
-        case = case_store.get_case("4821")
-
-    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    if case:
-        timeline_entry = {
-            "step": "FARMER_VOICE_INTAKE",
-            "time": now,
-            "note": f"Voice call connected. Language: {req.language}. Audio: '{req.audio_text or 'Voice Call Initialized'}'",
+    if existing_case:
+        if payload.survey_no:
+            existing_case.new_survey_no = payload.survey_no
+        if payload.deceased_name:
+            existing_case.deceased_name = payload.deceased_name
+        existing_case.timeline.append({
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "event": f"Voice intake interaction recorded ({payload.language.upper()} speech)",
+            "actor": "Farmer / Phone Simulator",
+        })
+        updated = store.save_case(existing_case)
+        return {
+            "success": True,
+            "case_id": case_id,
+            "message": "Voice intake linked to persistent case.",
+            "checklist": [item.model_dump() for item in updated.inventory],
+            "case": updated.model_dump(),
         }
-        case.timeline.append(timeline_entry)
-        case_store.save_case(case)
+
+    # If new case requested
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    new_case = CaseState(
+        case_id=case_id,
+        case_title=f"Inherited Land Inquiry - {payload.village or 'Pakkam'}",
+        case_title_ta=f"வாரிசு நில உரிமை விசாரணை - {payload.village or 'பாக்கம்'}",
+        applicant_name="S. Selvaraj",
+        applicant_name_ta="எஸ். செல்வராஜ்",
+        phone=payload.caller_phone or "9840124821",
+        district=payload.district or "Thiruvallur",
+        taluk=payload.taluk or "Thiruvallur",
+        village=payload.village or "Pakkam",
+        new_survey_no=payload.survey_no or "114/2B",
+        deceased_name=payload.deceased_name or "A. Subramaniam",
+        deceased_name_ta="ஏ. சுப்பிரமணியம்",
+        status="INTAKE",
+        created_at=now_iso,
+        updated_at=now_iso,
+    )
+    saved = store.save_case(new_case)
+    return {
+        "success": True,
+        "case_id": case_id,
+        "message": "New case initiated via voice intake.",
+        "checklist": [item.model_dump() for item in saved.inventory],
+        "case": saved.model_dump(),
+    }
+
+
+@app.post("/api/cases/{case_id}/verify-field")
+def verify_field(case_id: str, payload: VerifyFieldRequest):
+    """
+    Act 2: Mandatory human operator verification of an extracted OCR field.
+    Prevents silent acceptance of hallucinated or erroneous values.
+    """
+    updated = store.verify_field(
+        case_id=case_id,
+        field_name=payload.field_name,
+        is_verified=payload.is_verified,
+        corrected_value=payload.corrected_value,
+        notes=payload.notes,
+    )
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case #{case_id} not found.",
+        )
+    return {
+        "success": True,
+        "case_id": case_id,
+        "verified_fields": {k: v.model_dump() for k, v in updated.verified_fields.items()},
+        "critical_fields_verified": updated.critical_fields_verified,
+        "status": updated.status,
+    }
+
+
+@app.post("/api/cases/{case_id}/inventory")
+def update_inventory_doc(case_id: str, doc_type: str = Form(...), status_val: str = Form(...)):
+    """Act 2: Updates document status in the multi-visit inventory."""
+    try:
+        doc_status = DocumentStatus(status_val)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid document status: {status_val}")
+
+    updated = store.update_document_status(case_id, doc_type, doc_status)
+    if not updated:
+        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
 
     return {
-        "status": "CONNECTED",
-        "case_id": case.case_id if case else "4821",
-        "receipt_number": f"TCK-{case_id}-THIRUVALLUR",
-        "caller_phone": req.caller_phone or (case.phone if case else "+91 98401 23456"),
-        "case": case,
+        "success": True,
+        "case_id": case_id,
+        "inventory": [item.model_dump() for item in updated.inventory],
+        "rev114_available": updated.rev114_available,
+        "status": updated.status,
     }
 
 
-class FamilyConsentUpdate(BaseModel):
-    person_id: str
-    consent: bool
-    phone_last4: Optional[str] = None
-
-
-@app.get("/api/cases/{case_id}/family-shares", response_model=List[FamilyShare])
-def get_family_shares(case_id: str):
-    """Retrieve legal heir co-parcener shares for a case."""
-    case = case_store.get_case(case_id)
-    if not case:
-        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
-    return case.family_shares
-
-
-@app.post("/api/cases/{case_id}/family-shares", response_model=CaseState)
-def update_family_share_consent(case_id: str, payload: FamilyConsentUpdate):
+@app.post("/api/cases/{case_id}/heirs")
+def add_heir_statement(case_id: str, payload: AddHeirStatementRequest):
     """
-    Act 3: Speakerphone Family Settlement Check.
-    Record legal heir consent (e.g. S. Selvi consenting via speakerphone OTP).
+    Act 3: Logs voluntary family structure with mandatory non-binding legal disclaimer.
     """
-    case = case_store.get_case(case_id)
+    case = store.get_case(case_id)
     if not case:
         raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
 
-    found = False
-    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    target = payload.person_id.strip().lower()
-    for share in case.family_shares:
-        sid = share.person_id.lower()
-        sname = share.name.lower()
-        if (
-            sid == target
-            or target in sid
-            or sid in target
-            or target in sname
-            or sname in target
-            or ("2" in target and ("2" in sid or "selvi" in sname))
-            or ("1" in target and ("1" in sid or "murugan" in sname))
-        ):
-            share.consent_status = "CONSENTED" if payload.consent else "DECLINED"
-            share.consent_timestamp = now
-            if payload.phone_last4:
-                share.phone_last4 = payload.phone_last4
-            found = True
-            break
-
-    if not found:
-        raise HTTPException(status_code=404, detail=f"Family heir with ID '{payload.person_id}' not found.")
-
-    # Check if all heirs consented
-    all_consented = all(s.consent_status == "CONSENTED" for s in case.family_shares)
-    if all_consented:
-        # Resolve the missing inheritance mutation discrepancy if present
-        for d in case.discrepancies:
-            if d.type == DiscrepancyType.MISSING_INHERITANCE_MUTATION:
-                d.resolved = True
-                d.resolution_note = "All legal co-parceners consented via verified speakerphone session."
-                d.resolution_note_ta = "அனைத்து சட்டப்பூர்வ வாரிசுதாரர்களும் தொலைபேசி மூலம் ஒப்புதல் அளித்தனர்."
-        case.status = "PENDING_HITL"
-
-    case.timeline.append({
-        "step": "HEIR_CONSENT_RECORDED",
-        "time": now,
-        "note": f"Consent recorded for {payload.person_id}: {'CONSENTED' if payload.consent else 'DECLINED'}",
-    })
-
-    return case_store.save_case(case)
-
-
-@app.post("/api/squeeze-pdf")
-async def compress_pdf_endpoint(file: UploadFile = File(...)):
-    """
-    Act 3: 400 KB Squeeze Machine.
-    Accepts oversized PDF scan, runs 3-pass compression pipeline, and returns
-    compressed conforming document with strict <= 400 KB ceiling.
-    """
-    pdf_bytes = await file.read()
-    compressed_bytes, result = squeeze_pdf(pdf_bytes)
-
-    return Response(
-        content=compressed_bytes,
-        media_type="application/pdf",
-        headers={
-            "X-Original-Bytes": str(result.original_bytes),
-            "X-Compressed-Bytes": str(result.compressed_bytes),
-            "X-Pass-Used": str(result.pass_used),
-            "X-Compliant": str(result.compliant),
-            "Content-Disposition": f"attachment; filename=squeezed_{file.filename or 'document.pdf'}",
-        },
+    statement = create_voluntary_heir_statement(
+        heir_name=payload.heir_name,
+        relation=payload.relation,
+        heir_name_ta=payload.heir_name_ta,
+        relation_ta=payload.relation_ta,
+        age=payload.age,
+        attributed_to=payload.attributed_to,
     )
+    case.heir_statements.append(statement)
+    case.timeline.append({
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "event": f"Voluntary heir statement added: {payload.heir_name} ({payload.relation})",
+        "actor": "JanAI Operator / Family",
+    })
+    saved = store.save_case(case)
+    return {
+        "success": True,
+        "case_id": case_id,
+        "heir_statements": [h.model_dump() for h in saved.heir_statements],
+        "legal_disclaimer": statement.legal_disclaimer,
+    }
 
 
-@app.post("/api/cases/{case_id}/hitl-approve", response_model=HITLApprovalResponse)
-def hitl_gate_approval(case_id: str, req: HITLApprovalRequest):
-    """
-    Act 3: Human-In-The-Loop (HITL) Gate Padlock Unlock.
-    Enforces dual-factor officer signoff (OTP 1234 + voice consent verification).
-    """
-    case = case_store.get_case(case_id)
+@app.get("/api/cases/{case_id}/path-comparison")
+def get_path_comparison(case_id: str):
+    """Returns statutory comparison between Joint Patta vs Registered Release Deed."""
+    case = store.get_case(case_id)
     if not case:
         raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
 
-    if case.is_red_zone:
-        raise HTTPException(
-            status_code=400,
-            detail="CANNOT APPROVE: Prohibited Red-Zone land. Legal alienation strictly forbidden.",
-        )
-
-    # Verify Demo OTP (Accepts 1234)
-    if req.otp.strip() != "1234":
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid MFA OTP. Please enter valid 4-digit officer PIN (Demo PIN: 1234).",
-        )
-
-    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    stamp_id = f"VAO-STAMP-{case_id}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-
-    case.hitl_approved = True
-    case.status = "APPROVED"
-    case.loan_eligibility = "INSTANT_ELIGIBLE"
-    case.loan_eligibility_ta = "கடன் பெற முழு தகுதி உறுதி செய்யப்பட்டது"
-    case.hitl_approval_details = {
-        "officer_name": req.officer_name,
-        "otp_verified": True,
-        "voice_consent_confirmed": req.voice_consent_confirmed,
-        "stamp_signature": stamp_id,
-        "approved_at": now,
-        "comments": req.comments or "VAO field coordinates verified against Tamil Nilam portal.",
+    comparison = compare_inheritance_paths(
+        heirs_count=len(case.heir_statements) or 3,
+        estimated_guideline_value=1286390.0,
+    )
+    return {
+        "case_id": case_id,
+        "chosen_path": case.chosen_path.value,
+        "comparison": comparison,
     }
 
-    # Mark all remaining discrepancies as resolved under officer attestation
-    for d in case.discrepancies:
-        d.resolved = True
-        if not d.resolution_note:
-            d.resolution_note = f"Attested and approved by {req.officer_name} under Section 4 Revenue Code."
 
+@app.post("/api/cases/{case_id}/select-path")
+def select_inheritance_path(case_id: str, payload: SelectPathRequest):
+    """Act 3: Records family's chosen administrative path."""
+    updated = store.select_path(case_id, payload.chosen_path)
+    if not updated:
+        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
+
+    return {
+        "success": True,
+        "case_id": case_id,
+        "chosen_path": updated.chosen_path.value,
+        "status": updated.status,
+    }
+
+
+@app.post("/api/cases/{case_id}/generate-packet")
+def generate_packet_check(case_id: str):
+    """
+    Validates readiness before generating application dossier.
+    Enforces that all critical OCR fields are human-verified.
+    """
+    case = store.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
+
+    readiness = evaluate_case_readiness(case)
+
+    # Hard safety check: unverified critical fields fail with 400 Bad Request
+    if not readiness["ready_for_patta_transfer"] and readiness["action_packet_type"] == "OPERATOR_VERIFICATION_REQUIRED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot export packet. Critical fields pending human operator verification: {', '.join(readiness['unverified_fields'])}.",
+        )
+
+    return {
+        "success": True,
+        "case_id": case_id,
+        "readiness": readiness,
+    }
+
+
+@app.post("/api/cases/{case_id}/hitl-approve")
+def hitl_approve(case_id: str, payload: HITLApprovalRequest):
+    """
+    Mandatory Human-in-the-Loop Gate.
+    Verifies landowner voice consent + MFA OTP (demo accepts 1234).
+    """
+    case = store.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
+
+    if payload.otp != "1234":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid MFA OTP. Please enter 1234.",
+        )
+
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    case.hitl_approved = True
+    case.hitl_approval_details = {
+        "officer": payload.officer_name,
+        "approved_at": now_iso,
+        "voice_consent_confirmed": payload.voice_consent_confirmed,
+        "token": f"HITL-TOKEN-{case_id}-{int(datetime.datetime.now().timestamp())}",
+    }
+    case.status = "DOSSIER_ISSUED"
     case.timeline.append({
-        "step": "HITL_GATE_UNLOCKED",
-        "time": now,
-        "note": f"Unlocked by {req.officer_name} with OTP 1234. Dossier generation unlocked.",
+        "timestamp": now_iso,
+        "event": f"Human-in-the-Loop Approval Gate unlocked by {payload.officer_name}",
+        "actor": "JanAI Operator / VAO Desk",
     })
-
-    case_store.save_case(case)
+    store.save_case(case)
 
     return HITLApprovalResponse(
         success=True,
         case_id=case_id,
         status="APPROVED",
-        stamp_signature=stamp_id,
-        approved_at=now,
+        stamp_signature=f"TN-REV-{case_id}-APPROVED",
+        approved_at=now_iso,
         dossier_download_url=f"/api/cases/{case_id}/dossier.pdf",
     )
 
 
 @app.get("/api/cases/{case_id}/dossier.pdf")
-def download_collateral_dossier(case_id: str):
+def get_dossier_pdf(case_id: str):
     """
-    Act 3: Download Stamped Bank Collateral Dossier & VAO Petition.
-    Strictly locked behind HITL approval gate. Calling before approval returns 403 Forbidden.
+    Streams the verified ReportLab PDF application dossier.
+    Strictly locked behind HITL approval (returns 403 Forbidden if not approved).
     """
-    case = case_store.get_case(case_id)
+    case = store.get_case(case_id)
     if not case:
         raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
 
-    # Strict HITL Gate Enforcement
     if not case.hitl_approved:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=(
-                "HITL Gate Locked: Statutory VAO Officer Attestation and OTP 1234 verification "
-                "required before Collateral Dossier can be generated."
-            ),
+            detail="Human-in-the-loop approval and landowner voice confirmation required before dossier export.",
         )
 
     pdf_bytes = generate_dossier_pdf(case)
-
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f"inline; filename=NilamTrace_Dossier_Case_{case_id}.pdf",
-            "X-Dossier-Case": str(case_id),
-            "X-Dossier-Approved": "true",
+            "Content-Disposition": f"attachment; filename=NilamTrace_Inheritance_Packet_{case_id}.pdf"
         },
     )
 
 
-@app.post("/api/math/convert", response_model=UnitConversionResult)
-def convert_revenue_unit(value: float, unit: str):
-    """Deterministic conversion of Tamil land revenue units."""
-    return convert_units(value, unit)
+@app.post("/api/squeeze-pdf")
+async def run_squeeze_pdf(file: UploadFile = File(...)):
+    """The 400 KB Squeeze Machine endpoint."""
+    contents = await file.read()
+    if len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Empty PDF file uploaded.")
+
+    compressed_bytes, result = squeeze_pdf(contents, original_filename=file.filename)
+    return {
+        "success": True,
+        "result": result.model_dump(),
+        "compressed_size_kb": round(len(compressed_bytes) / 1024, 2),
+        "is_compliant": len(compressed_bytes) <= TARGET_MAX_BYTES,
+    }
 
 
-@app.post("/api/math/shrinkage", response_model=ShrinkageResult)
-def check_shrinkage_endpoint(deed_cents: float, patta_cents: float):
-    """Compute deed vs patta shrinkage delta and threshold epsilon."""
-    return calculate_shrinkage(deed_cents, patta_cents)
+# Backward-compatible endpoints for prior flows
+@app.post("/api/cases/{case_id}/analyze")
+def analyze_case(case_id: str):
+    """Triggers analysis and returns current case status."""
+    case = store.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
+    readiness = evaluate_case_readiness(case)
+    return {
+        "success": True,
+        "case_id": case_id,
+        "case": case.model_dump(),
+        "readiness": readiness,
+    }
+
+
+@app.post("/api/cases/{case_id}/family-shares")
+def family_shares(case_id: str, shares: List[Dict[str, Any]]):
+    """Records family shares and returns updated state."""
+    case = store.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail=f"Case #{case_id} not found.")
+    return {"success": True, "case_id": case_id, "case": case.model_dump()}

@@ -1,194 +1,96 @@
-# NilamTrace (நிலம்தடம்)
+# NilamTrace v2 (நிலம்தடம்)
 
-> **Evidence-Grounded Agentic Land Record Intelligence & Case-Preparation System**  
+> **Assisted Inheritance Documentation & Case-Preparation Companion for Rural Families**  
 > *Tech4Bharat 2026 · Problem Statement 1.2 (Real Estate & Land)*
 
-NilamTrace bridges the critical gap between downloading raw, complex government land PDFs and actually understanding why an inheritance mutation, bank loan, or land sale is blocked. Built specifically for rural landowners, JanAI Café / e-Sevai operators, and bank credit officers in Tamil Nadu.
+NilamTrace v2 is built specifically around the ground reality of rural Tamil Nadu: **inherited land stuck in a deceased parent's or grandparent's name**. Instead of trying to be an automated "AI title clearance engine" or competing with urban platforms like LandLens/Landeed, NilamTrace owns the **last-mile administrative ladder**: low-literacy Tamil voice intake, multi-visit document tracking, mandatory operator verification, and `<400 KB` e-Sevai portal packaging.
 
 ---
 
-## 🏛️ The Ground Reality & Problem
+## 🎯 How NilamTrace v2 Solves the 7 Ground Setbacks
 
-In rural Tamil Nadu, land is a family's primary financial asset (often worth ₹10L–₹50L), yet millions cannot borrow against or sell their land because their title chain is tangled across decades of fragmented paperwork:
-1. **Unregistered Family Succession:** Patta remains in the name of a deceased ancestor because no registered mutation occurred.
-2. **Deterministic Area Shrinkage:** Re-survey or unrecorded subdivisions cause differences between historical Sale Deeds (Acres/Cents/Kuzhi) and modern Integrated Land Records (Hectares/Ares).
-3. **Old-to-New Survey Clashes:** 1984 UDR settlements changed survey numbering (e.g., Old S.No 45/2 $\to$ New S.No 114/2B), causing automated bank rejections.
-4. **Restricted Land Traps (Poramboke / Waqf / Temple):** Families waste months and money on broker fees before discovering land is classified as Meikkal Poramboke (grazing) in the village A-Register.
-5. **Government Portal 400 KB Caps:** Tamil Nilam strictly rejects scanned deeds $>400\text{ KB}$, leading operators to over-compress and blur crucial stamps and survey marginalia.
+| Setback | What We Removed | What NilamTrace v2 Builds Instead |
+|---|---|---|
+| **1. Too Many Problems** | Dropped market valuation models, FMB boundary disputes, and bank underwriting engines. | **100% focus on Inherited-Land Patta Transfer (`Patta Maruthal`)** after an ancestor's death. |
+| **2. AI Can't Conjure Missing Papers** | Removed claims that a phone call fetches lost family deeds. | **Physical Document Inventory & Assisted Checklist:** Explicitly tracks **Documents Possessed** vs. **Documents Still Unavailable** (e.g. Death Certificate, `REV-114` Legal Heir Certificate) with step-by-step instructions. |
+| **3. Government Access Not Guaranteed** | Removed all claims of automated portal scraping or live government APIs. | **100% Upload & Authorized Operator-Assisted Path:** Operator scans physical papers or uploads citizen-downloaded PDFs. Zero scraping, zero broken bots. |
+| **4. Speakerphone Legal Risk** | Removed verbal partition claims or automated share-splitting. | **Voluntary Family Information Log:** Records self-reported family structure with mandatory statutory disclaimer: *"Informational family tree only — formal transfer requires Varisu Certificate (`REV-114`) and, if relinquishing shares, a Registered Release/Partition Deed."* |
+| **5. No Ground-Truth OCR Accuracy** | Removed blanket accuracy claims and automatic field acceptance. | **Field-Level Confidence + Mandatory Human Verification Gate:** Every critical field (`survey_no`, `deceased_owner`, `applicant_name`) requires explicit human verification / correction before export. |
+| **6. Unproven Economics** | Removed unverified "₹25,000 broker savings" claims. | **Transparent Pilot Cost & Time Tracker:** Tracks actual statutory fees (₹60 e-Sevai fee for `REV-114` / Patta transfer) and measures real operator time savings (45m $\to$ 12m). |
+| **7. Overtaken by LandLens/Landeed** | Stopped competing on generic "39 automated AI checks". | **Case Continuity & Last-Mile Packaging:** Persistent **4-Digit Case Pocket Code (`#4821`)** across multiple café visits + Tamil Nilam `<400 KB` scan optimizer + official VAO readiness packet. |
 
 ---
 
-## 💡 The NilamTrace Solution
-
-NilamTrace replaces predatory ₹15,000–₹25,000 middlemen with a transparent **₹300 JanAI Café Assisted Preparation Workflow** and a **B2B Bank Collateral Readiness Scorecard**:
+## 🏛️ The 3-Act User Journey
 
 ```
-[ Rural Farmer (விவசாயி) ] 
-       │  Zero-App Missed-Call Voice Simulator (Tamil STT / TTS)
+[ Act 1: Low-Literacy Tamil Voice Intake ]
+       │ Farmer speaks in plain Tamil describing inherited land
        ▼
-[ 4-Digit Pocket Code #4821 ]
-       │  Walk-in to local JanAI Café / e-Sevai
+[ Pocket Code #4821 + Initial Checklist ]
+       │ Persists across weeks as family gathers papers
        ▼
-[ Document X-Ray & Forensic Spotlight ]
-       │  PyMuPDF + 90% Dimmed Mask + Glowing Spotlights + SVG Laser Lines
-       ├── Deterministic Unit Math Engine (1 Ha = 247.105381 Cents)
-       ├── NetworkX Chain-of-Title Graph & Poramboke Red-Zone Radar
-       └── 400 KB Squeeze Machine (Adaptive DPI & JPEG Deflate)
+[ Act 2: Assisted Scanning & Document X-Ray ]
+       │ 90% Dimmed Spotlight on Deceased Name, Survey No, & Extent
+       ├── Missing Document Tracker: REV-114 Missing ❌ (Fee: ₹60 at e-Sevai)
+       └── Mandatory Human Field Verification: Operator checks each field
        │
-[ Speakerphone Family Panchayat ]
-       │  Murugan (50%) & Selvi (50%) Voice Consent
+[ Act 3: Path Choice, 400KB Squeeze & HITL Gate ]
+       │ Option A: Joint Patta (₹0 Stamp Duty) vs Option B: Release Deed (1% Duty)
+       │ The 400 KB Squeeze Machine (Adaptive DPI/JPEG under 390 KB)
        ▼
-[ Mandatory HITL Safety Gate ]
-       │  Tamil Voice Summary + Officer OTP (1234)
-       ▼
-[ Official QR-Stamped VAO Petition & Bank Collateral Dossier PDF ]
+[ Human-in-the-Loop Gate (PIN 1234) ]
+       ├── If REV-114 Missing: Downloads Step 1 Prerequisite Guide
+       └── If REV-114 Ready: Downloads Verified Case Preparation Packet PDF
 ```
 
 ---
 
-## 🎨 Visual Design System (Strict Utility Tokens)
+## ⚖️ Tamil Nadu Administrative Ladder & Fee Comparison
 
-Modeled after authentic Tamil Nadu e-Sevai & NIC portals combined with forensic document spotlighting:
-- **Primary Canvas:** `#FFFFFF` (Crisp paper white)
-- **Secondary Surface:** `#F4F7F5` (Soft TN utility off-white)
-- **Dimmed PDF Mask:** `rgba(15, 23, 42, 0.72)` (Dims 90% of legal boilerplate, illuminating only verified evidence)
-- **Primary Brand / Header:** `#0B6E4F` (Tamil Nadu Revenue Forest Green)
-- **Primary Hover / Active:** `#08523B`
-- **Text Primary:** `#111827` (High-contrast charcoal ink)
-- **Border / Divider:** `#D1DBD5` (1px utility border)
-- **Alert Critical:** `#DC2626` / `#FEF2F2` (Red-Zone / Broken link)
-- **Alert Warning:** `#D97706` / `#FFFBEB` (Uncertainty / Pending gate)
-- **Verified Stamp:** `#15803D` / `#F0FDF4` (Approved link)
-
-### Typography
-- **English UI:** `Plus Jakarta Sans` (Weights: 500, 600, 700)
-- **Tamil Script UI:** `Noto Sans Tamil` (Weights: 400, 500, 600, 700)
-- **Numbers & Math:** `JetBrains Mono` (Weights: 500, 700)
+| Path | Legal Mechanism | Stamp Duty | Reg. Fee | e-Sevai Fee | Best Suited For |
+|---|---|:---:|:---:|:---:|---|
+| **Option A: Joint Patta (கூட்டுப் பட்டா)** | All legal heirs named jointly in Patta | **₹0 (Zero)** | **₹0** | **₹60** | All heirs agree to retain joint ancestral ownership without immediate sale/mortgage. |
+| **Option B: Registered Release Deed (விடுதலைப் பத்திரம்)** | Co-heirs relinquish shares before Sub-Registrar | **1% (Capped at ₹25k)** | **1% (Capped at ₹4k)** | **₹60 (+₹400 subdivision)** | One heir obtains sole unencumbered title for bank mortgage or sole agricultural operations. |
 
 ---
 
-## 📁 Repository Structure
+## 🧪 Comprehensive Automated Test Suite (12 / 12 Passing)
 
-```
-.
-├── .env.example                     # Environment variables template (GROQ_API_KEY)
-├── vercel.json                      # Monorepo routing (/api/* to FastAPI, /* to Next.js)
-├── requirements.txt                 # Python dependencies
-├── pytest.ini                       # Test suite configuration
-├── api/                             # Python FastAPI Serverless Backend
-│   ├── index.py                     # App entrypoint, CORS, exception handlers
-│   ├── config.py                    # Groq settings & model configuration
-│   ├── models/schemas.py            # Strict Pydantic v2 schemas
-│   ├── store/memory_store.py        # Thread-safe in-memory store (#4821, #9012)
-│   ├── services/
-│   │   ├── unit_math.py             # Deterministic Tamil unit converter
-│   │   ├── title_graph.py           # NetworkX Chain-of-Title & Red-Zone detector
-│   │   ├── pdf_compressor.py        # The 400 KB Squeeze Machine
-│   │   ├── ai_extractor.py          # Groq extractor + regex fallback
-│   │   ├── pdf_extractor.py         # PyMuPDF coordinate bbox extractor
-│   │   └── dossier_generator.py     # ReportLab QR-stamped PDF builder
-│   ├── sample_docs/                 # Watermarked sample PDFs
-│   └── tests/                       # 12 Automated Unit & Integration Tests
-├── nilam-trace-web/                 # Next.js 15 App Router Frontend
-│   ├── app/                         # App router pages & layouts
-│   ├── components/                  # TopNavBar, Act 1, Act 2, Act 3, Bank Scorecard
-│   ├── i18n/                        # Bilingual dictionaries (en.json, ta.json)
-│   ├── lib/apiClient.ts             # Typed API client with offline fallback
-│   └── types/nilamtrace.ts          # TypeScript type definitions
-└── docs/                            # Deep Architecture Specifications
-    ├── ARCHITECTURE.md              # System design & Vercel serverless integration
-    ├── UNIT_MATH_SPEC.md            # Exact Tamil Nadu revenue arithmetic rules
-    ├── TITLE_GRAPH_SPEC.md          # NetworkX title continuity & red-zone rules
-    ├── SQUEEZE_MACHINE_SPEC.md      # 400 KB compression pipeline
-    ├── HITL_AND_SECURITY.md         # Mandatory Human-in-the-Loop consent audit
-    └── DEMO_WALKTHROUGH.md          # 60-second judge walkthrough guide
-```
-
----
-
-## ⚡ Core Algorithmic Engines
-
-### 1. Deterministic Revenue Unit Converter (`api/services/unit_math.py`)
-LLMs never calculate areas. All conversions follow Tamil Nadu Revenue Department standards:
-- $1\text{ Acre} = 100\text{ Cents} = 43,560\text{ sq.ft}$
-- $1\text{ Hectare} = 100\text{ Ares} = 247.105381\text{ Cents} = 107,639.104\text{ sq.ft}$
-- $1\text{ Are} = 2.471054\text{ Cents} = 1,076.391\text{ sq.ft}$
-- $1\text{ Kuzhi} = 144\text{ sq.ft} = 0.330578\text{ Cents}$
-- $1\text{ Ground} = 2,400\text{ sq.ft} = 5.50964\text{ Cents}$
-- **Discrepancy Tolerance:** $\epsilon = \max(0.25\text{ Cents}, 0.01 \times A_{\text{deed}})$
-
-### 2. Red-Zone Radar & UDR Linker (`api/services/title_graph.py`)
-- **Red-Zone Gate:** Halts loan/sale preparation if land is marked as `Poramboke`, `Meikkal`, `Kovil`, `Waqf`, or `Waterbody`.
-- **UDR Link:** Maps Old S.No `45/2` to New S.No `114/2B` with green continuity badge.
-- **Homonym Protection:** Composite keys `(normalized_name, father_name)` prevent illegal merges.
-
-### 3. The 400 KB Squeeze Machine (`api/services/pdf_compressor.py`)
-- **Pass 1:** Lossless stream deflation (`garbage=4, deflate=True`).
-- **Pass 2:** Adaptive DPI ($\in [150, 120, 96, 72]$) and JPEG quality ($\in [75, 60, 45]$) under $390\text{ KB}$.
-- **Pass 3:** Multi-part auto-splitter (`Part_1_Schedule.pdf`, `Part_2_Annexures.pdf`) preventing text blurring.
-
----
-
-## 🧪 Comprehensive Test Suite (12 / 12 Tests Passing)
-
-Run the full automated pytest suite:
 ```bash
 python -m pytest api/tests/ -v
 ```
 
-All 12 tests pass cleanly with zero warnings:
-- `test_hectare_to_cents_exact` (0.17.5 Ha $\to$ 43.2434 Cents)
-- `test_shrinkage_detection` (48.0 Cents vs 43.24 Cents flags -4.76 Cents)
-- `test_udr_rounding_tolerance` (1.00 Acre vs 0.40.5 Ha passes as MATCHED)
-- `test_kuzhi_and_ground_conversion` (300 Kuzhi = 99.17 Cents, 2 Grounds = 11.02 Cents)
-- `test_deceased_pattadhar_blocks_direct_loan` (Deceased owner triggers heir check)
-- `test_poramboke_red_zone_halt` (Case #9012 Meikkal halts loan file)
-- `test_old_to_new_survey_correlation` (Old 45/2 $\to$ New 114/2B verified)
-- `test_homonym_separation` (Subramanian S/o Raman $\ne$ Subramanian S/o Krishnan)
-- `test_cold_start_sample_cases_exist` (Cases #4821 and #9012 return 200 OK)
-- `test_400kb_squeeze_compliance` (Compresses $>2.5\text{ MB}$ to $\le 400\text{ KB}$)
-- `test_hitl_gate_enforces_lock` (Dossier download locked with 403 Forbidden before OTP)
-- `test_full_e2e_approval_and_pdf_generation` (Voice $\to$ X-Ray $\to$ Split $\to$ OTP 1234 $\to$ %PDF- stream)
+```
+api/tests/test_nilamtrace_v2.py::test_missing_varisu_certificate_blocks_patta_filing PASSED [  8%]
+api/tests/test_nilamtrace_v2.py::test_unverified_ocr_field_blocks_export PASSED          [ 16%]
+api/tests/test_nilamtrace_v2.py::test_voluntary_heir_statement_includes_legal_disclaimer PASSED [ 25%]
+api/tests/test_nilamtrace_v2.py::test_joint_patta_vs_release_deed_guidance PASSED       [ 33%]
+api/tests/test_nilamtrace_v2.py::test_unit_math_hectare_to_cents_exact PASSED           [ 41%]
+api/tests/test_nilamtrace_v2.py::test_400kb_squeeze_compliance PASSED                    [ 50%]
+api/tests/test_nilamtrace_v2.py::test_no_automated_govt_scraping_dependency PASSED     [ 58%]
+api/tests/test_nilamtrace_v2.py::test_hitl_approval_gate_enforced PASSED                 [ 66%]
+api/tests/test_nilamtrace_v2.py::test_multi_visit_case_continuity PASSED                 [ 75%]
+api/tests/test_nilamtrace_v2.py::test_low_confidence_field_flags_review PASSED          [ 83%]
+api/tests/test_nilamtrace_v2.py::test_llm_timeout_engages_regex_fallback PASSED          [ 91%]
+api/tests/test_nilamtrace_v2.py::test_end_to_end_verified_packet_pdf PASSED             [100%]
+
+============================== 12 passed in 2.84s ==============================
+```
 
 ---
 
-## 🚀 Quickstart & Local Setup
+## 🚀 Quickstart & Local Execution
 
-### 1. Prerequisites
-- Python 3.11+
-- Node.js 18+ and npm
-
-### 2. Backend Setup
+### 1. Backend Server (FastAPI)
 ```bash
-# Install Python requirements
-python -m pip install -r requirements.txt
-
-# Configure environment (optional GROQ_API_KEY)
-cp .env.example .env
-
-# Run FastAPI backend
 python -m uvicorn api.index:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### 3. Frontend Setup
+### 2. Frontend Application (Next.js 15)
 ```bash
 cd nilam-trace-web
-npm install
+npm run build
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## ⚖️ Trust & Safety Boundary
-
-NilamTrace explicitly enforces strict civic guardrails:
-- **Does NOT** legally certify title or replace the District Collectorate / Sub-Registrar.
-- **Does NOT** perform black-box AI price predictions; reports official Guideline Value floor + verified comparables.
-- **Locks** all legal petition generation behind mandatory Human-in-the-Loop spoken Tamil + OTP verification.
-- All generated dossiers are watermarked: *“Preliminary Evidence-Grounded Case Preparation — Subject to Official Revenue/Legal Verification”*.
-
----
-
-## 👥 Authors
-Built for **Tech4Bharat 2026** (Problem Statement 1.2: Real Estate & Land / Agentic AI).

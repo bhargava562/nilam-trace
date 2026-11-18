@@ -9,11 +9,52 @@ export type DiscrepancyType =
 
 export type DiscrepancySeverity = 'CRITICAL' | 'WARNING' | 'INFO' | 'RESOLVED';
 
+export type DocumentStatus = 'AVAILABLE' | 'MISSING_TO_OBTAIN' | 'UPLOADED';
+
+export interface DocumentInventoryItem {
+  doc_type: string;
+  doc_name: string;
+  doc_name_ta: string;
+  status: DocumentStatus;
+  how_to_obtain_en: string;
+  how_to_obtain_ta: string;
+  official_fee_inr: number;
+  mandatory_for_patta: boolean;
+  uploaded_filename?: string;
+  verification_notes?: string;
+}
+
+export interface VerifiedField {
+  field_name: string;
+  extracted_value: string | number | boolean;
+  confidence: number;
+  page_num: number;
+  bbox?: [number, number, number, number];
+  human_verified: boolean;
+  verified_by_operator: boolean;
+  corrected_value?: string | number | boolean;
+  operator_notes?: string;
+  requires_manual_correction: boolean;
+}
+
+export interface VoluntaryHeirStatement {
+  heir_name: string;
+  heir_name_ta?: string;
+  relation: string;
+  relation_ta?: string;
+  age?: number;
+  attributed_to: string;
+  disclaimer_acknowledged: boolean;
+  legal_disclaimer: string;
+}
+
+export type InheritancePath = 'JOINT_PATTA' | 'REGISTERED_RELEASE_DEED' | 'UNDECIDED';
+
 export interface PersonNode {
   id?: string;
   name: string;
   father_or_husband_name: string;
-  relationship: string; // S/o, D/o, W/o
+  relationship: string;
   is_deceased: boolean;
   share_percentage?: number;
   legal_heir_status?: string;
@@ -26,7 +67,7 @@ export interface ExtractedField {
   raw_text?: string;
   confidence: number;
   doc_type: 'SALE_DEED' | 'PATTA' | 'CHITTA' | 'EC' | 'FMB' | 'LEGAL_HEIR';
-  bbox?: [number, number, number, number]; // [x0, y0, x1, y1] normalized or pixel
+  bbox?: [number, number, number, number];
   page: number;
 }
 
@@ -88,7 +129,7 @@ export interface SqueezeResult {
   compressed_bytes: number;
   target_max_bytes: number;
   compression_ratio: number;
-  pass_used: number; // 1, 2, or 3
+  pass_used: number;
   num_parts: number;
   compliant: boolean;
   details: string;
@@ -121,14 +162,18 @@ export interface IntakeVoiceRequest {
   taluk?: string;
   village?: string;
   survey_no?: string;
+  deceased_name?: string;
 }
 
 export interface TimelineEntry {
-  step: string;
-  time: string;
-  desc: string;
-  desc_ta: string;
-  status: 'DONE' | 'IN_PROGRESS' | 'PENDING';
+  step?: string;
+  timestamp?: string;
+  time?: string;
+  event?: string;
+  desc?: string;
+  desc_ta?: string;
+  actor?: string;
+  status?: 'DONE' | 'IN_PROGRESS' | 'PENDING';
 }
 
 export interface CaseState {
@@ -144,21 +189,39 @@ export interface CaseState {
   old_survey_no?: string;
   new_survey_no?: string;
   patta_no?: string;
-  deed_area_raw: string;
+  deceased_name: string;
+  deceased_name_ta: string;
+  date_of_death?: string;
+  deed_area_raw?: string;
   deed_area_cents: number;
-  patta_area_raw: string;
+  patta_area_raw?: string;
   patta_area_cents: number;
   area_delta_cents: number;
-  land_classification: string;
-  is_red_zone: boolean;
+  land_classification?: string;
+  is_red_zone?: boolean;
   red_zone_reason?: string;
   red_zone_reason_ta?: string;
-  status: 'INTAKE' | 'ANALYZED' | 'RESOLVING' | 'APPROVED' | 'REJECTED';
-  loan_eligibility: string;
+  status: 'INTAKE' | 'SCANNING' | 'MISSING_DOCS_PENDING' | 'HUMAN_VERIFICATION_PENDING' | 'READY_FOR_FILING' | 'DOSSIER_ISSUED' | 'APPROVED' | 'ANALYZED' | 'RESOLVING' | 'REJECTED';
+  chosen_path: InheritancePath;
+  rev114_available: boolean;
+  death_certificate_available: boolean;
+  critical_fields_verified: boolean;
+  ready_for_patta_transfer: boolean;
+  inventory: DocumentInventoryItem[];
+  verified_fields: Record<string, VerifiedField>;
+  heir_statements: VoluntaryHeirStatement[];
+  area_consistency?: ShrinkageResult;
+  pilot_metrics?: {
+    official_fees_inr: number;
+    operator_minutes_spent: number;
+    family_willingness_to_pay_inr: number;
+    est_broker_avoided_cost_inr: number;
+  };
+  loan_eligibility?: string;
   loan_eligibility_ta?: string;
-  discrepancies: Discrepancy[];
-  family_shares: FamilyShare[];
-  extracted_fields: ExtractedField[];
+  discrepancies?: Discrepancy[];
+  family_shares?: FamilyShare[];
+  extracted_fields?: ExtractedField[];
   hitl_approved: boolean;
   hitl_approval_details?: Record<string, unknown>;
   created_at: string;
@@ -166,5 +229,5 @@ export interface CaseState {
   timeline: TimelineEntry[];
 }
 
-export type PersonaMode = 'farmer' | 'cafe' | 'bank';
+export type PersonaMode = 'farmer' | 'cafe' | 'guide';
 export type Language = 'ta' | 'en';

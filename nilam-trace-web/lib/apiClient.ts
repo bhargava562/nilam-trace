@@ -1,315 +1,226 @@
 import {
   CaseState,
-  Discrepancy,
-  ExtractedField,
-  FamilyShare,
+  DocumentInventoryItem,
+  DocumentStatus,
   HITLApprovalRequest,
   HITLApprovalResponse,
+  InheritancePath,
   IntakeVoiceRequest,
   SqueezeResult,
+  VerifiedField,
+  VoluntaryHeirStatement,
 } from '@/types/nilamtrace';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 export const MOCK_CASE_4821: CaseState = {
   case_id: '4821',
-  case_title: 'Thiruvallur Agricultural Loan Title Rescue',
-  case_title_ta: 'திருவள்ளூர் விவசாயக் கடன் நில உரிமை மீட்பு',
-  applicant_name: 'Murugan Shanmugam',
-  applicant_name_ta: 'முருகன் சண்முகம்',
-  phone: '+91 98402 71829',
+  case_title: 'Thiruvallur Inherited Land Case (Late father Subramaniam)',
+  case_title_ta: 'திருவள்ளூர் பரம்பரை நில உரிமை (மறைந்த தந்தை சுப்பிரமணியம்)',
+  applicant_name: 'S. Selvaraj',
+  applicant_name_ta: 'எஸ். செல்வராஜ்',
+  phone: '9840124821',
   district: 'Thiruvallur',
-  taluk: 'Uthukottai',
-  village: 'Periyapalayam',
+  taluk: 'Thiruvallur',
+  village: 'Pakkam',
   old_survey_no: '45/2',
   new_survey_no: '114/2B',
-  patta_no: '2041',
+  patta_no: '382',
+  deceased_name: 'A. Subramaniam',
+  deceased_name_ta: 'ஏ. சுப்பிரமணியம்',
+  date_of_death: '2018-06-12',
   deed_area_raw: '48.00 Cents',
   deed_area_cents: 48.0,
-  patta_area_raw: '0.17.5 Hectares (0.175 Ha)',
-  patta_area_cents: 43.2434,
-  area_delta_cents: -4.7566,
-  land_classification: 'Ayan Nanjai (Wetland Rayathwari)',
-  is_red_zone: false,
-  status: 'ANALYZED',
-  loan_eligibility: 'CONDITIONALLY_ELIGIBLE_PENDING_VAO_STAMP',
-  loan_eligibility_ta: 'VAO முத்திரைக்குப் பின் கடன் பெற முழுத் தகுதியானது',
+  patta_area_raw: '0.17.5 Hectares (43.24 Cents)',
+  patta_area_cents: 43.24,
+  area_delta_cents: -4.76,
+  status: 'MISSING_DOCS_PENDING',
+  chosen_path: 'UNDECIDED',
+  rev114_available: false,
+  death_certificate_available: true,
+  critical_fields_verified: false,
+  ready_for_patta_transfer: false,
+  inventory: [
+    {
+      doc_type: 'DEATH_CERTIFICATE',
+      doc_name: 'Municipality Death Certificate',
+      doc_name_ta: 'இறப்புச் சான்றிதழ்',
+      status: 'AVAILABLE',
+      how_to_obtain_en: 'Issued by Municipal / Town Panchayat Registrar of Births and Deaths.',
+      how_to_obtain_ta: 'நகராட்சி / பேரூராட்சி பிறப்பு இறப்பு பதிவாளரால் வழங்கப்பட்டது.',
+      official_fee_inr: 0.0,
+      mandatory_for_patta: true,
+      uploaded_filename: 'case_4821_death_cert.pdf',
+    },
+    {
+      doc_type: 'SALE_DEED',
+      doc_name: '1994 Registered Parent Sale Deed (Doc No: 1420/1994)',
+      doc_name_ta: '1994 கிரையப் பத்திரம் (ஆவண எண்: 1420/1994)',
+      status: 'AVAILABLE',
+      how_to_obtain_en: 'Retrieved from family records or certified copy from Sub-Registrar Office via TNREGINET.',
+      how_to_obtain_ta: 'சார்பதிவாளர் அலுவலக நகல் அல்லது குடும்ப மூல ஆவணம்.',
+      official_fee_inr: 0.0,
+      mandatory_for_patta: true,
+      uploaded_filename: 'case_4821_sale_deed_1994.pdf',
+    },
+    {
+      doc_type: 'PATTA',
+      doc_name: 'Current Integrated Land Record / Patta (Old S.No 45/2 -> New S.No 114/2B)',
+      doc_name_ta: 'தற்போதைய தமிழ்நில கணினிப் பட்டா',
+      status: 'AVAILABLE',
+      how_to_obtain_en: 'Downloaded from eservices.tn.gov.in using citizen mobile OTP.',
+      how_to_obtain_ta: 'eservices.tn.gov.in தளத்தில் பதிவிறக்கம் செய்யப்பட்டது.',
+      official_fee_inr: 0.0,
+      mandatory_for_patta: true,
+      uploaded_filename: 'case_4821_patta_2024.pdf',
+    },
+    {
+      doc_type: 'LEGAL_HEIR_REV114',
+      doc_name: 'Tahsildar Legal Heirship Certificate (e-Sevai REV-114)',
+      doc_name_ta: 'வட்டாட்சியர் வாரிசுச் சான்றிதழ் (REV-114)',
+      status: 'MISSING_TO_OBTAIN',
+      how_to_obtain_en: 'Apply at nearest e-Sevai centre with Death Cert, Ration Card, Aadhaar, and Marriage Proof.',
+      how_to_obtain_ta: 'இறப்புச் சான்றிதழ், குடும்ப அட்டை, ஆதார் அட்டையுடன் அருகில் உள்ள இ-சேவை மையத்தில் விண்ணப்பிக்கவும்.',
+      official_fee_inr: 60.0,
+      mandatory_for_patta: true,
+    },
+  ],
+  verified_fields: {
+    deceased_owner: {
+      field_name: 'deceased_owner',
+      extracted_value: 'A. Subramaniam',
+      confidence: 0.94,
+      page_num: 1,
+      bbox: [72.0, 140.0, 280.0, 160.0],
+      human_verified: false,
+      verified_by_operator: false,
+      requires_manual_correction: false,
+    },
+    applicant_name: {
+      field_name: 'applicant_name',
+      extracted_value: 'S. Selvaraj',
+      confidence: 0.91,
+      page_num: 1,
+      bbox: [72.0, 170.0, 250.0, 190.0],
+      human_verified: false,
+      verified_by_operator: false,
+      requires_manual_correction: false,
+    },
+    survey_no: {
+      field_name: 'survey_no',
+      extracted_value: '114/2B',
+      confidence: 0.96,
+      page_num: 1,
+      bbox: [72.0, 210.0, 200.0, 230.0],
+      human_verified: false,
+      verified_by_operator: false,
+      requires_manual_correction: false,
+    },
+    subdivision: {
+      field_name: 'subdivision',
+      extracted_value: '2B',
+      confidence: 0.81,
+      page_num: 1,
+      bbox: [205.0, 210.0, 240.0, 230.0],
+      human_verified: false,
+      verified_by_operator: false,
+      requires_manual_correction: true,
+    },
+    doc_date: {
+      field_name: 'doc_date',
+      extracted_value: '1994-08-14',
+      confidence: 0.89,
+      page_num: 2,
+      bbox: [300.0, 700.0, 450.0, 720.0],
+      human_verified: false,
+      verified_by_operator: false,
+      requires_manual_correction: false,
+    },
+    extent: {
+      field_name: 'extent',
+      extracted_value: '0.17.5 Ha (43.24 Cents)',
+      confidence: 0.93,
+      page_num: 1,
+      bbox: [72.0, 250.0, 320.0, 270.0],
+      human_verified: false,
+      verified_by_operator: false,
+      requires_manual_correction: false,
+    },
+  },
+  heir_statements: [
+    {
+      heir_name: 'S. Murugan',
+      heir_name_ta: 'எஸ். முருகன்',
+      relation: 'Son (Elder Brother)',
+      relation_ta: 'மகன் (மூத்த சகோதரர்)',
+      age: 62,
+      attributed_to: 'Applicant voluntary oral statement',
+      disclaimer_acknowledged: true,
+      legal_disclaimer:
+        'Informational family tree only — does not establish legal title or partition; formal transfer requires Varisu Certificate (REV-114) and, if relinquishing shares, a Registered Release/Partition Deed.',
+    },
+    {
+      heir_name: 'S. Selvi',
+      heir_name_ta: 'எஸ். செல்வி',
+      relation: 'Daughter (Sister)',
+      relation_ta: 'மகள் (சகோதரி)',
+      age: 55,
+      attributed_to: 'Applicant voluntary oral statement',
+      disclaimer_acknowledged: true,
+      legal_disclaimer:
+        'Informational family tree only — does not establish legal title or partition; formal transfer requires Varisu Certificate (REV-114) and, if relinquishing shares, a Registered Release/Partition Deed.',
+    },
+    {
+      heir_name: 'S. Selvaraj',
+      heir_name_ta: 'எஸ். செல்வராஜ்',
+      relation: 'Son (Applicant)',
+      relation_ta: 'மகன் (விண்ணப்பதாரர்)',
+      age: 58,
+      attributed_to: 'Applicant voluntary oral statement',
+      disclaimer_acknowledged: true,
+      legal_disclaimer:
+        'Informational family tree only — does not establish legal title or partition; formal transfer requires Varisu Certificate (REV-114) and, if relinquishing shares, a Registered Release/Partition Deed.',
+    },
+  ],
+  area_consistency: {
+    deed_cents: 48.0,
+    patta_cents: 43.24,
+    delta_cents: -4.76,
+    percentage_loss: 9.92,
+    threshold_epsilon: 0.48,
+    is_shrinkage: true,
+    explanation: '4.76 Cents reduction between 1994 Sale Deed and 2024 Patta. Flagged for operator review without making title assumptions.',
+    explanation_ta: '1994 கிரையப் பத்திரத்திற்கும் 2024 பட்டாவிற்கும் இடையே 4.76 சென்ட் குறைபாடு உள்ளது.',
+  },
+  pilot_metrics: {
+    official_fees_inr: 60.0,
+    operator_minutes_spent: 12,
+    family_willingness_to_pay_inr: 300,
+    est_broker_avoided_cost_inr: 15000,
+  },
+  hitl_approved: false,
   created_at: '2026-11-18T09:30:00Z',
   updated_at: '2026-11-18T09:35:00Z',
-  extracted_fields: [
-    {
-      field_name: 'Pattadhar Name',
-      value: 'Late Shanmugam S/o Raman',
-      raw_text: 'சண்முகம் த/பெ ராமன் (மறைவு)',
-      confidence: 0.98,
-      doc_type: 'PATTA',
-      page: 1,
-      bbox: [45, 120, 240, 145],
-    },
-    {
-      field_name: 'Old Survey Number',
-      value: '45/2',
-      raw_text: 'பழைய சர்வே எண் 45/2',
-      confidence: 0.99,
-      doc_type: 'SALE_DEED',
-      page: 2,
-      bbox: [50, 180, 210, 205],
-    },
-    {
-      field_name: 'New UDR Survey Number',
-      value: '114/2B',
-      raw_text: 'புதிய சர்வே எண் 114/2B (உ.தி.ரா திருத்தம்)',
-      confidence: 0.99,
-      doc_type: 'PATTA',
-      page: 1,
-      bbox: [45, 180, 220, 205],
-    },
-    {
-      field_name: 'Deed Registered Extent',
-      value: '48 Cents (0.48 Acre)',
-      raw_text: 'பரப்பளவு 48 சென்ட்',
-      confidence: 0.97,
-      doc_type: 'SALE_DEED',
-      page: 2,
-      bbox: [50, 240, 260, 265],
-    },
-    {
-      field_name: 'Patta Metric Extent',
-      value: '0.17.5 Hectare (17.5 Ares)',
-      raw_text: '0.17.5 ஹெக் (17.5 ஏர்ஸ்)',
-      confidence: 0.98,
-      doc_type: 'PATTA',
-      page: 1,
-      bbox: [45, 240, 270, 265],
-    },
-    {
-      field_name: 'Encumbrance Certificate (EC)',
-      value: 'Nil Encumbrance (Clean 30-Year Search)',
-      raw_text: 'வில்லங்கச் சான்றிதழ்: வில்லங்கம் ஏதுமில்லை',
-      confidence: 0.99,
-      doc_type: 'EC',
-      page: 1,
-      bbox: [50, 310, 290, 335],
-    },
-  ],
-  discrepancies: [
-    {
-      id: 'DISC-001',
-      type: 'MISSING_INHERITANCE_MUTATION',
-      severity: 'CRITICAL',
-      title: 'Pattadhar Deceased • Missing Inheritance Mutation',
-      title_ta: 'பட்டாதாரர் காலமானார் • வாரிசுரிமை பட்டா மாற்றம் விடுபட்டுள்ளது',
-      description:
-        'Registered owner Shanmugam passed away in 2021. Land currently stands in deceased name. Under Section 8 of Hindu Succession Act, legal heir certificate and co-parcener consent are required before mortgage.',
-      description_ta:
-        'பதிவு பெற்ற நில உரிமையாளர் சண்முகம் 2021-ல் காலமானார். பட்டா இன்னும் மறைந்தவர் பெயரிலேயே உள்ளது. வங்கி அடமானத்திற்கு வாரிசு சான்றிதழ் மற்றும் வாரிசுதாரர் ஒப்புதல் அவசியம்.',
-      source_doc: 'Legal Heir Certificate W/2024/0912',
-      target_doc: 'Patta #2041',
-      deed_value: 'Shanmugam (Father)',
-      patta_value: 'Shanmugam (Deceased)',
-      delta: 'Requires Co-parcener Mutation',
-      resolved: false,
-      action_required: 'Record telephonic consent with co-heir Selvi and obtain VAO sign-off.',
-      action_required_ta: 'உடன் வாரிசு செல்வியிடம் தொலைபேசி ஒப்புதல் பெற்று VAO ஒப்புதல் பெறவும்.',
-    },
-    {
-      id: 'DISC-002',
-      type: 'AREA_SHRINKAGE_UNRECORDED_SUBDIVISION',
-      severity: 'WARNING',
-      title: 'Subdivision Shrinkage (-4.76 Cents Unrecorded Acquisition)',
-      title_ta: 'உட்பிரிவு நிலக் குறைவு (-4.76 சென்ட் அரசு வாய்க்கால் நில எடுப்பு)',
-      description:
-        'Deed conveys 48.00 Cents, but Patta 0.17.5 Hectares converts deterministically to 43.24 Cents. Delta of -4.76 Cents correlates with 1999 PWD irrigation feeder channel lawful acquisition.',
-      description_ta:
-        '1998 பத்திரத்தில் 48 சென்ட் உள்ளது, ஆனால் பட்டாவில் 0.17.5 ஹெக்டேர் (43.24 சென்ட்) மட்டுமே உள்ளது. 4.76 சென்ட் குறைவு என்பது 1999 பொதுப்பணித்துறை பாசன வாய்க்கால் நில எடுப்புடன் பொருந்துகிறது.',
-      source_doc: 'Sale Deed 1420/1998',
-      target_doc: 'Patta 2041 (Ayan Rayathwari)',
-      deed_value: '48.00 Cents',
-      patta_value: '43.24 Cents (0.17.5 Ha)',
-      delta: '-4.76 Cents (-9.92%)',
-      resolved: true,
-      resolution_note: 'Validated against TN Revenue Board Standing Order 31. Remaining 43.24 Cents is 100% unencumbered title.',
-      resolution_note_ta: 'வருவாய் நிலை ஆணை 31-ன் கீழ் சரிபார்க்கப்பட்டது. மீதமுள்ள 43.24 சென்ட் நிலம் 100% சுத்தமான உரிமை.',
-    },
-    {
-      id: 'DISC-003',
-      type: 'RESOLVED_UDR_SURVEY_LINK',
-      severity: 'RESOLVED',
-      title: 'Old vs New Survey Correlation Verified (UDR Scheme)',
-      title_ta: 'பழைய மற்றும் புதிய சர்வே எண் பொருத்தம் உறுதி செய்யப்பட்டது (உ.தி.ரா)',
-      description:
-        'Old Survey 45/2 automatically mapped to New UDR Survey 114/2B via Village Field Measurement Book (FMB) cross-reference ledger G.O. Ms 311.',
-      description_ta:
-        'பழைய சர்வே எண் 45/2, கிராம நில வரைபட (FMB) அரசாணை 311-ன் படி புதிய உ.தி.ரா சர்வே எண் 114/2B உடன் 100% துல்லியமாக பொருந்துகிறது.',
-      source_doc: 'Old S.No 45/2 (1998)',
-      target_doc: 'New S.No 114/2B (2024)',
-      deed_value: '45/2',
-      patta_value: '114/2B',
-      delta: '100% Matched',
-      resolved: true,
-      resolution_note: 'Cross-century chain unbroken. Confirmed by computerized Tamil Nilam ledger.',
-      resolution_note_ta: 'நூற்றாண்டுத் தொடர்ச்சி உறுதிப்படுத்தப்பட்டது. தமிழ் நிலம் பதிவேடு சரிபார்க்கப்பட்டது.',
-    },
-  ],
-  family_shares: [
-    {
-      person_id: 'P-01',
-      name: 'Murugan Shanmugam',
-      name_ta: 'முருகன் சண்முகம்',
-      relationship: 'Son (Applicant)',
-      legal_heir_certificate_ref: 'W/2024/0912/01',
-      share_percentage: 50.0,
-      share_cents: 21.6217,
-      consent_status: 'CONSENTED',
-      phone_last4: '1829',
-      consent_timestamp: '2026-11-18 09:31:00',
-    },
-    {
-      person_id: 'P-02',
-      name: 'Selvi M. (w/o Muthuvel)',
-      name_ta: 'செல்வி மு. (க/பெ முத்துவேல்)',
-      relationship: 'Married Daughter (Co-parcener)',
-      legal_heir_certificate_ref: 'W/2024/0912/02',
-      share_percentage: 50.0,
-      share_cents: 21.6217,
-      consent_status: 'PENDING',
-      phone_last4: '9481',
-    },
-  ],
-  hitl_approved: false,
   timeline: [
-    {
-      step: 'FARMER_VOICE_INTAKE',
-      time: '09:30 AM',
-      desc: 'Toll-free missed call received from +91 98402 71829. Tamil speech transcribed.',
-      desc_ta: 'கட்டணமில்லா குரல் வழி அழைப்பு பெறப்பட்டது. தமிழ் உரை பதிவு செய்யப்பட்டது.',
-      status: 'DONE',
-    },
-    {
-      step: 'THERMAL_POCKET_CODE',
-      time: '09:31 AM',
-      desc: 'Pocket Code #4821 dispatched via SMS to applicant.',
-      desc_ta: 'பாக்கெட் குறியீடு #4821 விண்ணப்பதாரருக்கு SMS மூலம் அனுப்பப்பட்டது.',
-      status: 'DONE',
-    },
-    {
-      step: 'DOCUMENT_XRAY_AUDIT',
-      time: '09:32 AM',
-      desc: 'Multi-modal audit completed. UDR Survey matched, -4.76 cents shrinkage analyzed.',
-      desc_ta: 'ஆவண ஊடுகதிர் தணிக்கை முடிந்தது. உ.தி.ரா பொருத்தம் மற்றும் 4.76 சென்ட் குறைவு பகுப்பாய்வு செய்யப்பட்டது.',
-      status: 'DONE',
-    },
-    {
-      step: 'SPEAKERPHONE_CONSENT',
-      time: '09:34 AM',
-      desc: 'Co-parcener Selvi telephonic consent pending.',
-      desc_ta: 'வாரிசுதாரர் செல்வியின் தொலைபேசி குரல் ஒப்புதல் நிலுவையில் உள்ளது.',
-      status: 'IN_PROGRESS',
-    },
-    {
-      step: 'VAO_STAMP_SLAM',
-      time: '09:35 AM',
-      desc: 'Padlocked HITL gate waiting for VAO OTP authorization.',
-      desc_ta: 'VAO அதிகாரியின் OTP அங்கீகாரத்திற்காக முத்திரை வாயில் காத்திருக்கிறது.',
-      status: 'PENDING',
-    },
+    { timestamp: '2026-11-18T09:30:00Z', event: 'Missed Call Received from 9840124821', actor: 'Farmer S. Selvaraj' },
+    { timestamp: '2026-11-18T09:31:00Z', event: 'Pocket Code 4821 Generated with REV-114 Checklist', actor: 'NilamTrace Voice Engine' },
   ],
 };
 
-export const MOCK_CASE_9012: CaseState = {
-  case_id: '9012',
-  case_title: 'Sriperumbudur Meikkal Poramboke Red-Zone Trap',
-  case_title_ta: 'ஸ்ரீபெரும்புதூர் மேய்க்கால் புறம்போக்கு சிவப்பு மண்டல பொறி',
-  applicant_name: 'Palanisamy K.',
-  applicant_name_ta: 'பழனிசாமி கே.',
-  phone: '+91 94441 90123',
-  district: 'Kanchipuram',
-  taluk: 'Sriperumbudur',
-  village: 'Pillaippakkam',
-  old_survey_no: '88/1',
-  new_survey_no: '204/A',
-  patta_no: 'FAKE-991',
-  deed_area_raw: '1.20 Acres (120 Cents)',
-  deed_area_cents: 120.0,
-  patta_area_raw: '0.00 Hectares (Government Classified)',
-  patta_area_cents: 0.0,
-  area_delta_cents: -120.0,
-  land_classification: 'Meikkal Poramboke (Communal Grazing Reserve)',
-  is_red_zone: true,
-  red_zone_reason: 'SUPREME COURT MANDATE: Meikkal Poramboke (Grazing Land) cannot be alienated or mutated into private patta.',
-  red_zone_reason_ta: 'உச்ச நீதிமன்ற ஆணை: மேய்க்கால் புறம்போக்கு நிலத்தை எக்காரணம் கொண்டும் தனியார் பட்டாவாக மாற்ற முடியாது.',
-  status: 'REJECTED',
-  loan_eligibility: 'PERMANENTLY_BLOCKED_CRITICAL_RED_ZONE',
-  loan_eligibility_ta: 'அரசு புறம்போக்கு நிலம் - கடன் வழங்க நிரந்தரத் தடை',
-  created_at: '2026-11-18T10:00:00Z',
-  updated_at: '2026-11-18T10:02:00Z',
-  extracted_fields: [
-    {
-      field_name: 'Land Classification',
-      value: 'Meikkal Poramboke',
-      raw_text: 'வகைப்பாடு: மேய்க்கால் புறம்போக்கு (கிராம பொது நிலம்)',
-      confidence: 1.0,
-      doc_type: 'PATTA',
-      page: 1,
-      bbox: [40, 100, 280, 130],
-    },
-  ],
-  discrepancies: [
-    {
-      id: 'DISC-RED-01',
-      type: 'CRITICAL_RED_ZONE_BLOCK',
-      severity: 'CRITICAL',
-      title: 'CRITICAL RED-ZONE BLOCK: Meikkal Poramboke',
-      title_ta: 'சிவப்பு மண்டல தடை: மேய்க்கால் புறம்போக்கு நிலம்',
-      description:
-        'Survey 204/A is gazetted as communal grazing poramboke under Village Settlement Register. Unscrupulous broker attempted fraudulent deed creation.',
-      description_ta:
-        'சர்வே எண் 204/A கிராம மேய்க்கால் புறம்போக்கு என அரசு ஏடுகளில் பதிவாகியுள்ளது. போலி பத்திர முயற்சி முறியடிக்கப்பட்டது.',
-      source_doc: 'Forged Deed 331/2012',
-      target_doc: 'Village A-Register 1984',
-      deed_value: 'Private Freehold',
-      patta_value: 'Govt Meikkal Poramboke',
-      delta: 'Illegal Alienation',
-      resolved: false,
-      action_required: 'Immediate rejection. FIR referral under TN Land Encroachment Act 1905.',
-      action_required_ta: 'உடனடி நிராகரிப்பு. தமிழ்நாடு நில ஆக்கிரமிப்பு தடுப்புச் சட்டத்தின் கீழ் நடவடிக்கை.',
-    },
-  ],
-  family_shares: [],
-  hitl_approved: false,
-  timeline: [
-    {
-      step: 'FARMER_VOICE_INTAKE',
-      time: '10:00 AM',
-      desc: 'Call received. S.No 204/A Pillaippakkam reported.',
-      desc_ta: 'அழைப்பு பெறப்பட்டது. சர்வே 204/A பதிவு செய்யப்பட்டது.',
-      status: 'DONE',
-    },
-    {
-      step: 'RED_ZONE_INTERCEPT',
-      time: '10:01 AM',
-      desc: 'Automatic halt: Meikkal Poramboke detected. Title loan halted.',
-      desc_ta: 'மேய்க்கால் புறம்போக்கு கண்டறியப்பட்டு உடனடி கடன் அனுமதி தடுக்கப்பட்டது.',
-      status: 'DONE',
-    },
-  ],
-};
-
-export const api = {
-  async getCase(caseId: string = '4821'): Promise<CaseState> {
+export const apiClient = {
+  async getCaseState(caseId: string = '4821'): Promise<CaseState> {
     try {
       const res = await fetch(`${API_BASE}/api/cases/${caseId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch {
-      // Fallback to rich mock data
-      return caseId === '9012' ? { ...MOCK_CASE_9012 } : { ...MOCK_CASE_4821 };
+      return MOCK_CASE_4821;
     }
   },
 
-  async postVoiceIntake(req: IntakeVoiceRequest): Promise<{ case_id: string; receipt_code: string; transcript: string; reply: string }> {
+  async intakeVoice(req: IntakeVoiceRequest): Promise<{ success: boolean; case_id: string; message: string; case: CaseState }> {
     try {
-      const res = await fetch(`${API_BASE}/api/voice-intake`, {
+      const res = await fetch(`${API_BASE}/api/intake/voice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),
@@ -318,84 +229,131 @@ export const api = {
       return await res.json();
     } catch {
       return {
-        case_id: '4821',
-        receipt_code: '#4821',
-        transcript: req.audio_text || 'முருகன் பேசுகிறேன். 1998 பத்திரத்துல 48 சென்ட், பட்டாவுல 0.17.5 ஹெக்டேர். கடன் கிடைக்கல.',
-        reply: 'வணக்கம் முருகன் அய்யா. பழைய சர்வே 45/2 புதிய உ.தி.ரா சர்வே 114/2B உடன் இணைக்கப்பட்டது. 0.17.5 ஹெக்டேர் = 43.24 சென்ட். உங்கள் பாக்கெட் எண் #4821.',
+        success: true,
+        case_id: req.case_id || '4821',
+        message: 'Mock Voice Intake Processed',
+        case: MOCK_CASE_4821,
       };
     }
   },
 
-  async analyzeCase(caseId: string): Promise<CaseState> {
+  async verifyField(
+    caseId: string,
+    fieldName: string,
+    isVerified: boolean = true,
+    correctedValue?: string | number | boolean,
+    notes?: string
+  ): Promise<{ success: boolean; critical_fields_verified: boolean }> {
     try {
-      const res = await fetch(`${API_BASE}/api/cases/${caseId}/analyze`, {
+      const res = await fetch(`${API_BASE}/api/cases/${caseId}/verify-field`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field_name: fieldName, is_verified: isVerified, corrected_value: correctedValue, notes }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch {
-      return caseId === '9012' ? { ...MOCK_CASE_9012 } : { ...MOCK_CASE_4821 };
+      if (MOCK_CASE_4821.verified_fields[fieldName]) {
+        MOCK_CASE_4821.verified_fields[fieldName].human_verified = isVerified;
+        MOCK_CASE_4821.verified_fields[fieldName].verified_by_operator = isVerified;
+      }
+      return { success: true, critical_fields_verified: true };
     }
   },
 
-  async splitFamilyShares(caseId: string): Promise<FamilyShare[]> {
+  async updateInventory(
+    caseId: string,
+    docType: string,
+    statusVal: DocumentStatus
+  ): Promise<{ success: boolean; rev114_available: boolean }> {
     try {
-      const res = await fetch(`${API_BASE}/api/cases/${caseId}/family-shares`);
+      const formData = new FormData();
+      formData.append('doc_type', docType);
+      formData.append('status_val', statusVal);
+      const res = await fetch(`${API_BASE}/api/cases/${caseId}/inventory`, {
+        method: 'POST',
+        body: formData,
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch {
-      return [
-        {
-          person_id: 'P-01',
-          name: 'Murugan Shanmugam',
-          name_ta: 'முருகன் சண்முகம்',
-          relationship: 'Son (Applicant)',
-          legal_heir_certificate_ref: 'W/2024/0912/01',
-          share_percentage: 50.0,
-          share_cents: 21.6217,
-          consent_status: 'CONSENTED',
-          phone_last4: '1829',
-          consent_timestamp: '2026-11-18 09:31:00',
-        },
-        {
-          person_id: 'P-02',
-          name: 'Selvi M. (w/o Muthuvel)',
-          name_ta: 'செல்வி மு. (க/பெ முத்துவேல்)',
-          relationship: 'Married Daughter (Co-parcener)',
-          legal_heir_certificate_ref: 'W/2024/0912/02',
-          share_percentage: 50.0,
-          share_cents: 21.6217,
-          consent_status: 'CONSENTED',
-          phone_last4: '9481',
-          consent_timestamp: '2026-11-18 09:34:12',
-        },
-      ];
+      const item = MOCK_CASE_4821.inventory.find((i) => i.doc_type === docType);
+      if (item) item.status = statusVal;
+      return { success: true, rev114_available: statusVal === 'AVAILABLE' };
     }
   },
 
-  async squeezePdf(caseId: string): Promise<SqueezeResult> {
+  async selectPath(caseId: string, chosenPath: InheritancePath): Promise<{ success: boolean; chosen_path: string }> {
     try {
-      const res = await fetch(`${API_BASE}/api/cases/${caseId}/squeeze-pdf`, {
+      const res = await fetch(`${API_BASE}/api/cases/${caseId}/select-path`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chosen_path: chosenPath }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch {
+      MOCK_CASE_4821.chosen_path = chosenPath;
+      return { success: true, chosen_path: chosenPath };
+    }
+  },
+
+  async addHeirStatement(
+    caseId: string,
+    heirName: string,
+    relation: string,
+    age?: number
+  ): Promise<{ success: boolean; legal_disclaimer: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/api/cases/${caseId}/heirs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ heir_name: heirName, relation: relation, age: age }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch {
       return {
-        original_bytes: 2977955, // 2.84 MB
-        compressed_bytes: 346112, // 338 KB
-        target_max_bytes: 409600, // 400 KB
-        compression_ratio: 8.6,
-        pass_used: 2,
-        num_parts: 1,
-        compliant: true,
-        details: 'Pass 2: Adaptive DPI (120 DPI) + JPEG 60% with lossless stream deflation.',
-        part_files: ['nilamtrace_4821_squeezed_338kb.pdf'],
+        success: true,
+        legal_disclaimer:
+          'Informational family tree only — does not establish legal title or partition; formal transfer requires Varisu Certificate (REV-114).',
       };
     }
   },
 
-  async approveHITL(req: HITLApprovalRequest): Promise<HITLApprovalResponse> {
+  async getPathComparison(caseId: string = '4821') {
+    try {
+      const res = await fetch(`${API_BASE}/api/cases/${caseId}/path-comparison`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch {
+      return {
+        case_id: caseId,
+        chosen_path: 'UNDECIDED',
+        comparison: {
+          paths: {
+            JOINT_PATTA: {
+              name: 'Option A: Joint Patta (கூட்டுப் பட்டா)',
+              stamp_duty_inr: 0.0,
+              registration_fee_inr: 0.0,
+              esevai_filing_fee_inr: 60.0,
+              total_statutory_cost_inr: 60.0,
+            },
+            REGISTERED_RELEASE_DEED: {
+              name: 'Option B: Registered Release Deed (விடுதலைப் பத்திரம்)',
+              stamp_duty_inr: 12863.9,
+              registration_fee_inr: 4000.0,
+              esevai_filing_fee_inr: 60.0,
+              subdivision_fee_inr: 400.0,
+              total_statutory_cost_inr: 17323.9,
+            },
+          },
+        },
+      };
+    }
+  },
+
+  async hitlApprove(req: HITLApprovalRequest): Promise<HITLApprovalResponse> {
     try {
       const res = await fetch(`${API_BASE}/api/cases/${req.case_id}/hitl-approve`, {
         method: 'POST',
@@ -409,9 +367,36 @@ export const api = {
         success: true,
         case_id: req.case_id,
         status: 'APPROVED',
-        stamp_signature: 'VAO-UTHUKOTTAI-2026-TN-4821-SIG',
+        stamp_signature: `TN-REV-${req.case_id}-APPROVED`,
         approved_at: new Date().toISOString(),
         dossier_download_url: `/api/cases/${req.case_id}/dossier.pdf`,
+      };
+    }
+  },
+
+  async squeezePdf(file: File): Promise<{ success: boolean; result: SqueezeResult }> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${API_BASE}/api/squeeze-pdf`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch {
+      return {
+        success: true,
+        result: {
+          original_bytes: file.size || 2800000,
+          compressed_bytes: 345000,
+          target_max_bytes: 409600,
+          compression_ratio: 0.12,
+          pass_used: 2,
+          num_parts: 1,
+          compliant: true,
+          details: 'Pass 2 Adaptive DPI/JPEG achieved 338 KB (Compliant with <= 400 KB Tamil Nilam limit).',
+        },
       };
     }
   },
@@ -420,3 +405,10 @@ export const api = {
     return `${API_BASE}/api/cases/${caseId}/dossier.pdf`;
   },
 };
+
+export const api = {
+  ...apiClient,
+  getCase: apiClient.getCaseState,
+};
+export const MOCK_CASE_9012 = { ...MOCK_CASE_4821, case_id: '9012', case_title: 'Pakkam Meikkal Poramboke Restriction Alert', is_red_zone: true };
+
