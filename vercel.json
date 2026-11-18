@@ -1,23 +1,8 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "nilam-trace-web/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "nilam-trace-web/$1"
+      "source": "/api/:match*",
+      "destination": "api/index.py"
     }
   ]
 }

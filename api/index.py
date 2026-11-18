@@ -8,9 +8,10 @@ Assisted Inheritance Documentation & Case-Preparation Companion
 import io
 import datetime
 from typing import Dict, Any, List, Optional
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, status
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, status, Request
 from fastapi.responses import Response, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 
 from api.config import settings
@@ -51,14 +52,71 @@ app = FastAPI(
     description="Tamil Nadu Assisted Inheritance Documentation & Case-Preparation Companion",
 )
 
-# CORS configuration
+# Robust CORS Configuration: supports localhost, local LAN IPs, Vercel preview/production domains, and mobile simulators
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition", "Content-Type", "Content-Length"],
 )
+
+
+@app.middleware("http")
+async def add_cors_headers_middleware(request: Request, call_next):
+    """Ensure CORS headers are attached to every single HTTP response, including exceptions."""
+    if request.method == "OPTIONS":
+        response = Response(status_code=200)
+    else:
+        response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Clean HTTP exception handler with CORS guarantees."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "success": False, "status_code": exc.status_code},
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Clean validation error handler with CORS guarantees."""
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "success": False, "message": "Request payload validation error"},
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    """Global unhandled exception safety net with CORS guarantees."""
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server processing error", "error": str(exc), "success": False},
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
+
+
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(rest_of_path: str):
+    """Explicit OPTIONS preflight endpoint for complex browser fetch headers."""
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
+            "Access-Control-Allow-Headers": "*",
+        },
+    )
 
 
 @app.get("/api/health")

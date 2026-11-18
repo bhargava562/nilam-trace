@@ -1,0 +1,84 @@
+{
+  "brand": {
+    "name": "NilamTrace",
+    "tagline": "Assisted Inheritance Documentation & Case-Preparation Companion",
+    "department": "Tamil Nadu Revenue Administration · JanAI Café Assisted Console",
+    "officialFee": "Official Govt Fee: ₹60 e-Sevai Service Charge",
+    "quickDemo": "▶ Run 60s Live Case",
+    "reset": "Reset Demo"
+  },
+  "personas": {
+    "farmer": "1. Farmer Voice Intake (விவசாயி)",
+    "cafe": "2. JanAI Café Operator Desk (இ-சேவை)",
+    "guide": "3. Inheritance Path Guide & Pilot Tracker (வழிகாட்டி)"
+  },
+  "acts": {
+    "act1Title": "Act 1: Low-Literacy Tamil Voice Intake & Pocket Code",
+    "act1Desc": "Voice-first rural intake generating persistent Pocket Code #4821 with document collection checklist",
+    "act2Title": "Act 2: Assisted Scanning, Document X-Ray & Human Field Verification",
+    "act2Desc": "Documents Possessed vs Missing REV-114 Tracker, 90% dimmed spotlight, and mandatory operator verification",
+    "act3Title": "Act 3: Voluntary Family Statement, Path Selection & HITL Gate",
+    "act3Desc": "Attributed family statement with legal disclaimer, Joint Patta vs Release Deed choice, and 400KB portal packager"
+  },
+  "cases": {
+    "case4821": "Case #4821: Inherited Land in Deceased Father's Name (Thiruvallur)",
+    "case9012": "Case #9012: Meikkal Poramboke Restriction Alert"
+  },
+  "phone": {
+    "tollFree": "1800-NILAM-TR (Toll Free Dial)",
+    "statusIdle": "Ready to dial",
+    "statusCalling": "Calling Land Voice AI...",
+    "statusConnected": "Connected (Tamil Nadu Revenue IVR)",
+    "statusEnded": "Call Ended • Pocket Code #4821 Generated",
+    "callButton": "📞 Call 1800-NILAM-TR",
+    "endButton": "End Call",
+    "listenTamil": "Listen in Tamil",
+    "micHelp": "Click to speak or press Play Audio Demo",
+    "playSample": "Play Farmer Voice Sample",
+    "transcriptLabel": "Live Voice Call Audio Transcript",
+    "sampleFarmerSpeech": "Vanakkam sir, I am Selvaraj from Pakkam village, Thiruvallur. Our agricultural land is still in my late father Subramaniam's name who passed away in 2018. We have the 1994 registered sale deed and current patta, but when I approached the office for loan documents, they told me to get Patta Maruthal and a Varisu certificate. We don't know what papers to take to e-Sevai. Please guide us!",
+    "agentResponse": "Vanakkam Selvaraj ayya. Do not worry. Your pocket token is #4821. You have the Death Certificate and 1994 Sale Deed, but you must first obtain the Tahsildar Legal Heir Certificate (REV-114) at your nearest e-Sevai centre with a ₹60 fee. Take your father's death certificate, ration card, and family Aadhaar cards. Visit your local JanAI Café and mention code 4821.",
+    "smsReceiptTitle": "Thermal Pocket-Code Receipt & Document Checklist",
+    "receiptCode": "POCKET CODE: #4821",
+    "receiptDate": "18-Nov-2026 09:30 AM",
+    "receiptSmsNotice": "SMS delivered to +91 98401 *****. Bring father's death certificate, 1994 sale deed, and family ration card to JanAI Café."
+  },
+  "xray": {
+    "title": "Document X-Ray, Missing-Doc Tracker & Human Field Verification",
+    "toggleDeed": "1994 Registered Deed",
+    "togglePatta": "Current Patta (2024)",
+    "toggleOverlay": "Forensic Spotlight & Lasers",
+    "legendTitle": "Extracted OCR Fields (Mandatory Human Operator Check)",
+    "unitMathTitle": "Supporting Deterministic Unit Math Consistency Check",
+    "formulaLabel": "Statutory TN Revenue Math (0.17.5 Ha = 43.24 Cents vs 48.0 Cents)",
+    "oldSurvey": "Old Survey: 45/2",
+    "newSurvey": "New Survey: 114/2B",
+    "udrCorrelation": "1984 UDR Resurvey Continuity Link: Validated",
+    "deedArea": "Deed Extent: 48.00 Cents",
+    "pattaArea": "Patta Extent: 0.17.5 Hectare (43.24 Cents)",
+    "shrinkageDelta": "Calculated Delta: -4.76 Cents (-9.92%)",
+    "shrinkageNote": "Flagged for operator visual check. Mathematical difference without legal title assertion.",
+    "missingVarisuWarning": "LEGAL HEIR CERTIFICATE (REV-114) MISSING: Patta transfer blocked until obtained from e-Sevai (Official fee ₹60).",
+    "humanVerifyNotice": "Every critical field requires explicit operator verification before export. No silent AI acceptance."
+  },
+  "actionDrawer": {
+    "familyTitle": "1. Voluntary Family Structure Log (Informational Only)",
+    "familyDesc": "Applicant self-reported family members. Non-binding intake; formal title requires REV-114 Legal Heirship Certificate.",
+    "heirMurugan": "S. Murugan (Elder Brother - Age 62)",
+    "heirSelvi": "S. Selvi (Sister - Age 55)",
+    "heirSelvaraj": "S. Selvaraj (Applicant - Age 58)",
+    "disclaimerText": "Informational family tree only — does not establish legal title or partition; formal transfer requires Varisu Certificate (REV-114) and, if relinquishing shares, a Registered Release/Partition Deed.",
+    "pathTitle": "2. Tamil Nadu Inheritance Administrative Path Choice",
+    "pathJoint": "Option A: Joint Patta (கூட்டுப் பட்டா)",
+    "pathJointDesc": "All surviving heirs listed jointly in Patta. Zero stamp duty. Statutory e-Sevai fee: ₹60.",
+    "pathRelease": "Option B: Registered Release Deed (விடுதலைப் பத்திரம்)",
+    "pathReleaseDesc": "Co-heirs relinquish shares before Sub-Registrar. 1% family concessional stamp duty on TNREGINET.",
+    "squeezeTitle": "3. The 400 KB Squeeze Machine (Tamil Nilam Gateway Optimizer)",
+    "squeezeDesc": "Lossless stream deflate & adaptive DPI/JPEG re-sampling under 390 KB so scans never get rejected.",
+    "hitlTitle": "4. Mandatory Human-In-The-Loop Approval Gate",
+    "hitlDesc": "Protected by landowner Tamil voice summary playback + Operator MFA PIN (1234).",
+    "downloadDossier": "Download Verified Inheritance Case Preparation Packet",
+    "downloadPrerequisite": "Download Step 1 Prerequisite Packet (REV-114 Guide)",
+    "consentAudioTranscript": "Selvaraj ayya, your inheritance application file for Late father Subramaniam is prepared. Please confirm with OTP 1234."
+  }
+}
