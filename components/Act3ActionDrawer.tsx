@@ -22,6 +22,7 @@ import {
 import confetti from 'canvas-confetti';
 import enDict from '@/i18n/en.json';
 import taDict from '@/i18n/ta.json';
+import hiDict from '@/i18n/hi.json';
 
 interface Act3ActionDrawerProps {
   caseData: CaseState;
@@ -36,8 +37,9 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
   onApproveSuccess,
   onPathSelected,
 }) => {
-  const dict = language === 'ta' ? taDict : enDict;
+  const dict = language === 'ta' ? taDict : language === 'hi' ? hiDict : enDict;
   const isTa = language === 'ta';
+  const isHi = language === 'hi';
 
   // State 1: Inheritance Path Choice
   const [selectedPath, setSelectedPath] = useState<InheritancePath>(
@@ -133,7 +135,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
         </span>
         <h2 className="text-lg font-bold text-[#111827] mt-1.5 flex items-center gap-2">
           <Scale className="w-5 h-5 text-[#0B6E4F]" />
-          <span>{isTa ? 'வாரிசு உரிமைப் பாதை தேர்வு & பாதுகாப்பு வாயில்' : 'Inheritance Path Selection & Hard Safety Gate'}</span>
+          <span>{isTa ? 'வாரிசு உரிமைப் பாதை தேர்வு & பாதுகாப்பு வாயில்' : isHi ? 'उत्तराधिकार मार्ग चयन एवं सुरक्षा गेट' : 'Inheritance Path Selection & Hard Safety Gate'}</span>
         </h2>
         <p className="text-xs text-[#4B5563] mt-0.5">{dict.acts.act3Desc}</p>
       </div>
@@ -149,7 +151,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                 <span>{dict.actionDrawer.familyTitle}</span>
               </h3>
               <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">
-                {isTa ? 'தகவல் பதிவு மட்டுமே' : 'Informational Log'}
+                {isTa ? 'தகவல் பதிவு மட்டுமே' : isHi ? 'केवल सूचनात्मक' : 'Informational Log'}
               </span>
             </div>
 
@@ -172,7 +174,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                     {heir.age && <span className="text-gray-400 text-[10px] ml-1">· Age {heir.age}</span>}
                   </div>
                   <span className="text-[10px] text-gray-500 font-mono">
-                    {isTa ? 'வாக்குமூலம்' : 'Self-Reported'}
+                    {isTa ? 'வாக்குமூலம்' : isHi ? 'स्व-घोषित' : 'Self-Reported'}
                   </span>
                 </div>
               ))}
@@ -180,7 +182,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
 
             {/* Mandatory Non-Binding Legal Disclaimer Banner */}
             <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 text-[10px] text-red-700 leading-normal">
-              <strong>{isTa ? 'சட்ட அறிவிப்பு:' : 'STATUTORY DISCLAIMER:'}</strong>{' '}
+              <strong>{isTa ? 'சட்ட அறிவிப்பு:' : isHi ? 'वैधानिक अस्वीकरण:' : 'STATUTORY DISCLAIMER:'}</strong>{' '}
               {dict.actionDrawer.disclaimerText}
             </div>
           </div>
@@ -209,7 +211,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                   )}
                 </div>
                 <h4 className="font-bold text-xs text-[#111827] mt-1">
-                  {isTa ? 'கூட்டுப் பட்டா' : 'Joint Patta'}
+                  {isTa ? 'கூட்டுப் பட்டா' : isHi ? 'संयुक्त पट्टा' : 'Joint Patta'}
                 </h4>
                 <p className="text-[11px] text-[#4B5563] mt-1 leading-snug">
                   {dict.actionDrawer.pathJointDesc}
@@ -235,7 +237,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                   )}
                 </div>
                 <h4 className="font-bold text-xs text-[#111827] mt-1">
-                  {isTa ? 'விடுதலைப் பத்திரம்' : 'Release Deed'}
+                  {isTa ? 'விடுதலைப் பத்திரம்' : isHi ? 'रिलीज डीड' : 'Release Deed'}
                 </h4>
                 <p className="text-[11px] text-[#4B5563] mt-1 leading-snug">
                   {dict.actionDrawer.pathReleaseDesc}
@@ -267,7 +269,11 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
             <div className="bg-white p-3.5 rounded-lg border border-[#D1DBD5] space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-[#111827]">
-                  {isTa ? '1994 மூலப் பத்திரம் (1420/1994)' : '1994 Sale Deed Scan (24 Pages)'}
+                  {isTa
+                    ? '1994 மூலப் பத்திரம் (1420/1994)'
+                    : isHi
+                    ? '1994 मूल बिक्री विलेख (1420/1994)'
+                    : '1994 Sale Deed Scan (24 Pages)'}
                 </span>
                 <span className="font-mono font-bold text-xs text-[#0B6E4F]">
                   {squeezedSizeKB} KB / 390 KB Limit
@@ -284,10 +290,14 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
 
               <div className="flex items-center justify-between text-[11px] text-[#4B5563] pt-1">
                 <span>
-                  {isTa ? 'தொடக்க அளவு: 2.84 MB' : 'Original Scan: 2.84 MB'}
+                  {isTa ? 'தொடக்க அளவு: 2.84 MB' : isHi ? 'मूल स्कैन: 2.84 MB' : 'Original Scan: 2.84 MB'}
                 </span>
                 <span className="text-emerald-700 font-bold">
-                  {isTa ? 'உகப்பாக்கப்பட்டது: 338 KB (ஏற்புடையது ✅)' : 'Optimized: 338 KB (Compliant ✅)'}
+                  {isTa
+                    ? 'உகப்பாக்கப்பட்டது: 338 KB (ஏற்புடையது ✅)'
+                    : isHi
+                    ? 'अनुकूलित: 338 KB (स्वीकार्य ✅)'
+                    : 'Optimized: 338 KB (Compliant ✅)'}
                 </span>
               </div>
             </div>
@@ -298,7 +308,19 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
               className="w-full py-2 bg-white hover:bg-gray-50 border border-[#D1DBD5] rounded-lg text-xs font-bold text-[#0B6E4F] transition flex items-center justify-center gap-1.5"
             >
               <FileArchive className="w-3.5 h-3.5" />
-              <span>{isSqueezing ? (isTa ? 'சுருக்குகிறது...' : 'Compressing Scan...') : (isTa ? '400KB சோதனை செய்க' : 'Execute 400KB Squeeze')}</span>
+              <span>
+                {isSqueezing
+                  ? isTa
+                    ? 'சுருக்குகிறது...'
+                    : isHi
+                    ? 'कंप्रेस हो रहा है...'
+                    : 'Compressing Scan...'
+                  : isTa
+                  ? '400KB சோதனை செய்க'
+                  : isHi
+                  ? '400KB स्क्वीज़ निष्पादित करें'
+                  : 'Execute 400KB Squeeze'}
+              </span>
             </button>
           </div>
 
@@ -336,6 +358,8 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                 <span>
                   {isTa
                     ? 'வாரிசுச் சான்றிதழ் (REV-114) இல்லாததால், படி 1 க்கான விண்ணப்ப வழிகாட்டி மட்டுமே பதிவிறக்க முடியும்.'
+                    : isHi
+                    ? 'REV-114 कानूनी वारिस प्रमाण पत्र लंबित है। ई-सेवा में आवेदन के लिए चरण 1 गाइड डाउनलोड करें।'
                     : 'REV-114 Legal Heir Certificate is pending. You can generate the Step 1 Prerequisite Packet to apply at e-Sevai.'}
                 </span>
               </div>
@@ -345,7 +369,13 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
             {!isApproved ? (
               <div className="bg-[#F4F7F5] p-3.5 rounded-xl border border-[#D1DBD5] space-y-3">
                 <div className="flex items-center justify-between text-xs font-semibold text-[#111827]">
-                  <span>{isTa ? 'அலுவலர் OTP குறியீடு (டெமோ: 1234)' : 'Operator OTP Pin (Demo: 1234)'}</span>
+                  <span>
+                    {isTa
+                      ? 'அலுவலர் OTP குறியீடு (டெமோ: 1234)'
+                      : isHi
+                      ? 'ऑपरेटर ओटीपी पिन (डेमो: 1234)'
+                      : 'Operator OTP Pin (Demo: 1234)'}
+                  </span>
                   <span className="font-mono text-emerald-700">MFA Protected</span>
                 </div>
 
@@ -365,8 +395,16 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                     <Stamp className="w-3.5 h-3.5" />
                     <span>
                       {isSubmitting
-                        ? (isTa ? 'சரிபார்க்கிறது...' : 'Verifying...')
-                        : (isTa ? 'குரல் உறுதி + OTP 1234' : 'Voice Consent + Verify OTP')}
+                        ? isTa
+                          ? 'சரிபார்க்கிறது...'
+                          : isHi
+                          ? 'सत्यापित कर रहा है...'
+                          : 'Verifying...'
+                        : isTa
+                        ? 'குரல் உறுதி + OTP 1234'
+                        : isHi
+                        ? 'वॉयस सहमति + OTP 1234'
+                        : 'Voice Consent + Verify OTP'}
                     </span>
                   </button>
                 </div>
@@ -379,7 +417,13 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
               <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 text-emerald-800 font-bold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>{isTa ? 'அலுவலர் ஒப்புதல் பெறப்பட்டது' : 'Officer HITL Approved'}</span>
+                  <span>
+                    {isTa
+                      ? 'அலுவலர் ஒப்புதல் பெறப்பட்டது'
+                      : isHi
+                      ? 'अधिकारी द्वारा अनुमोदित'
+                      : 'Officer HITL Approved'}
+                  </span>
                 </div>
                 <span className="font-mono text-[10px] text-emerald-700">TN-REV-4821-STAMP</span>
               </div>
@@ -397,6 +441,8 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                   <p className="text-[11px] text-[#4B5563] mt-0.5">
                     {isTa
                       ? 'அதிகாரப்பூர்வ QR முத்திரையுடன் தயார் செய்யப்பட்ட ஆவணம்'
+                      : isHi
+                      ? 'आधिकारिक क्यूआर कोड के साथ उत्पन्न फ़ाइल'
                       : 'Generated via ReportLab with embedded provenance QR code'}
                   </p>
                 </div>
@@ -408,7 +454,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                   className="px-4 py-2.5 bg-[#0B6E4F] hover:bg-[#08523B] text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-1.5 shrink-0"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>{isTa ? 'பதிவிறக்குக' : 'Download PDF'}</span>
+                  <span>{isTa ? 'பதிவிறக்குக' : isHi ? 'डाउनलोड करें' : 'Download PDF'}</span>
                 </a>
 
                 {/* Animated Visual Seal */}

@@ -8,7 +8,8 @@ interface TopNavBarProps {
   currentPersona: PersonaMode;
   onSelectPersona: (persona: PersonaMode) => void;
   language: Language;
-  onToggleLanguage: () => void;
+  onToggleLanguage?: () => void;
+  onSelectLanguage?: (lang: Language) => void;
   onRunQuickDemo: () => void;
   isQuickDemoRunning: boolean;
   selectedCaseId: string;
@@ -21,6 +22,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   onSelectPersona,
   language,
   onToggleLanguage,
+  onSelectLanguage,
   onRunQuickDemo,
   isQuickDemoRunning,
   selectedCaseId,
@@ -28,6 +30,15 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   onReset,
 }) => {
   const isTa = language === 'ta';
+  const isHi = language === 'hi';
+
+  const handleLang = (lang: Language) => {
+    if (onSelectLanguage) {
+      onSelectLanguage(lang);
+    } else if (onToggleLanguage) {
+      onToggleLanguage();
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-[#0B6E4F] text-white shadow-md border-b border-[#08523B]">
@@ -38,6 +49,8 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           <span className="text-emerald-100">
             {isTa
               ? 'தமிழ்நாடு அரசு வருவாய்த் துறை • இ-சேவை மையம் / JanAI Café'
+              : isHi
+              ? 'तमिलनाडु सरकार राजस्व प्रशासन • जनएआई कैफ़े / ई-सेवा केंद्र'
               : 'Govt of Tamil Nadu • Dept of Revenue Administration • JanAI Café Console'}
           </span>
         </div>
@@ -45,17 +58,17 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         {/* Official Statutory Fee & Pilot Benchmarks */}
         <div className="flex items-center gap-3 bg-[#053828] px-3 py-0.5 rounded-full border border-emerald-400/30 text-[11px]">
           <span className="text-emerald-300 font-semibold uppercase tracking-wider">
-            {isTa ? 'அரசு சேவைக் கட்டணம்:' : 'Statutory e-Sevai Fee:'}
+            {isTa ? 'அரசு சேவைக் கட்டணம்:' : isHi ? 'सरकारी सेवा शुल्क:' : 'Statutory e-Sevai Fee:'}
           </span>
           <span className="text-emerald-200 font-mono font-bold">₹60.00 (REV-114 / Patta)</span>
           <span className="bg-emerald-500/20 text-emerald-200 px-1.5 py-0.2 rounded text-[10px] font-bold">
-            {isTa ? 'நேர சேமிப்பு: 45நிமி ➔ 12நிமி' : 'Turnaround: 45m ➔ 12m'}
+            {isTa ? 'நேர சேமிப்பு: 45நிமி ➔ 12நிமி' : isHi ? 'समय बचत: 45मि ➔ 12मि' : 'Turnaround: 45m ➔ 12m'}
           </span>
         </div>
 
         {/* Case Switcher */}
         <div className="flex items-center gap-1.5 text-[11px]">
-          <span className="text-emerald-200">{isTa ? 'வழக்கு:' : 'Active Case:'}</span>
+          <span className="text-emerald-200">{isTa ? 'வழக்கு:' : isHi ? 'केस:' : 'Active Case:'}</span>
           <button
             onClick={() => onSelectCase('4821')}
             className={`px-2 py-0.5 rounded transition ${
@@ -97,9 +110,11 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-1.5">
-                <span>நிலம்தடம்</span>
+                <span>{isTa ? 'நிலம்தடம்' : isHi ? 'नीलमट्रेस' : 'NilamTrace'}</span>
                 <span className="text-emerald-300 font-light">|</span>
-                <span className="font-semibold text-emerald-100">NilamTrace</span>
+                <span className="font-semibold text-emerald-100">
+                  {isTa ? 'NilamTrace' : isHi ? 'NilamTrace' : 'நிலம்தடம்'}
+                </span>
               </h1>
               <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-700/80 text-emerald-100 px-2 py-0.5 rounded-md border border-emerald-500/40">
                 <ShieldCheck className="w-3 h-3 text-emerald-300" />
@@ -109,6 +124,8 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             <p className="text-xs text-emerald-200/90 font-medium hidden sm:block">
               {isTa
                 ? 'கிராமப்புற வாரிசு நில ஆவண வழிகாட்டி மற்றும் விண்ணப்பத் தயாரிப்புத் தளம்'
+                : isHi
+                ? 'ग्रामीण उत्तराधिकार दस्तावेज़ीकरण एवं आवेदन तैयारी साथी'
                 : 'Assisted Inheritance Documentation & Case-Preparation Companion'}
             </p>
           </div>
@@ -126,7 +143,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             title="Act 1: Zero-Literacy Voice Intake"
           >
             <PhoneCall className="w-3.5 h-3.5" />
-            <span>{isTa ? '1. விவசாயி குரல்' : '1. Farmer Call'}</span>
+            <span>{isTa ? '1. விவசாயி குரல்' : isHi ? '1. किसान आवाज़' : '1. Farmer Call'}</span>
           </button>
 
           <button
@@ -139,7 +156,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             title="Act 2 & 3: JanAI Café Desk / Document X-Ray"
           >
             <Monitor className="w-3.5 h-3.5" />
-            <span>{isTa ? '2. இ-சேவை மேசை' : '2. JanAI Café Desk'}</span>
+            <span>{isTa ? '2. இ-சேவை மேசை' : isHi ? '2. जनएआई डेस्क' : '2. JanAI Café Desk'}</span>
           </button>
 
           <button
@@ -152,7 +169,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             title="Inheritance Path Guide & Official Pilot Tracker"
           >
             <Scale className="w-3.5 h-3.5" />
-            <span>{isTa ? '3. வாரிசுப் பாதை & கட்டணம்' : '3. Inheritance Guide'}</span>
+            <span>{isTa ? '3. வாரிசுப் பாதை & கட்டணம்' : isHi ? '3. उत्तराधिकार गाइड' : '3. Inheritance Guide'}</span>
           </button>
         </nav>
 
@@ -162,22 +179,66 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           <button
             onClick={onRunQuickDemo}
             disabled={isQuickDemoRunning}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-[#111827] text-xs font-bold shadow-md transition transform active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-[#111827] text-xs font-bold shadow-md transition transform active:scale-95 disabled:opacity-50"
             title="Automate the complete 60s walkthrough"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-900" />
-            <span>{isQuickDemoRunning ? (isTa ? 'இயங்குகிறது...' : 'Running 60s...') : (isTa ? '▶ நேரலை டெமோ' : '▶ Run 60s Live Case')}</span>
+            <span>
+              {isQuickDemoRunning
+                ? isTa
+                  ? 'இயங்குகிறது...'
+                  : isHi
+                  ? 'चल रहा है...'
+                  : 'Running 60s...'
+                : isTa
+                ? '▶ நேரலை டெமோ'
+                : isHi
+                ? '▶ 60s लाइव केस'
+                : '▶ Run 60s Live Case'}
+            </span>
           </button>
 
-          {/* Language Toggle Button */}
-          <button
-            onClick={onToggleLanguage}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#08523B] hover:bg-[#053828] text-white text-xs font-bold border border-emerald-500/40 transition shadow-inner"
-            title="Switch Language / மொழியை மாற்றுக"
+          {/* 3-Language Segmented Switch: [English, Tamil, Hindi] */}
+          <div
+            className="flex items-center bg-[#08523B] p-0.5 rounded-lg border border-emerald-500/40 shadow-inner"
+            role="group"
+            aria-label="Language Switcher"
           >
-            <Languages className="w-3.5 h-3.5 text-emerald-300" />
-            <span>{isTa ? 'English' : 'தமிழ்'}</span>
-          </button>
+            <Languages className="w-3.5 h-3.5 text-emerald-300 ml-1.5 mr-1" />
+            <button
+              onClick={() => handleLang('en')}
+              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+                language === 'en'
+                  ? 'bg-white text-[#0B6E4F] font-bold shadow-xs'
+                  : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
+              }`}
+              title="English (Default)"
+            >
+              English
+            </button>
+            <button
+              onClick={() => handleLang('ta')}
+              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+                language === 'ta'
+                  ? 'bg-white text-[#0B6E4F] font-bold shadow-xs'
+                  : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
+              }`}
+              title="தமிழ் (Tamil)"
+            >
+              தமிழ்
+            </button>
+            <button
+              onClick={() => handleLang('hi')}
+              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+                language === 'hi'
+                  ? 'bg-white text-[#0B6E4F] font-bold shadow-xs'
+                  : 'text-emerald-100 hover:text-white hover:bg-emerald-800/40'
+              }`}
+              title="हिन्दी (Hindi)"
+            >
+              हिन्दी
+            </button>
+          </div>
 
           {/* Reset Demo Button */}
           <button

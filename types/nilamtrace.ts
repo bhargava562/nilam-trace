@@ -230,4 +230,4 @@ export interface CaseState {
 }
 
 export type PersonaMode = 'farmer' | 'cafe' | 'guide';
-export type Language = 'ta' | 'en';
+export type Language = 'en' | 'ta' | 'hi';

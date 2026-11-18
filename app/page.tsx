@@ -11,16 +11,18 @@ import { api, MOCK_CASE_4821 } from '@/lib/apiClient';
 import { ChevronRight, Sparkles } from 'lucide-react';
 import enDict from '@/i18n/en.json';
 import taDict from '@/i18n/ta.json';
+import hiDict from '@/i18n/hi.json';
 
 export default function Home() {
   const [currentPersona, setCurrentPersona] = useState<PersonaMode>('cafe');
-  const [language, setLanguage] = useState<Language>('ta');
+  const [language, setLanguage] = useState<Language>('en');
   const [selectedCaseId, setSelectedCaseId] = useState<string>('4821');
   const [caseData, setCaseData] = useState<CaseState>(MOCK_CASE_4821);
   const [isQuickDemoRunning, setIsQuickDemoRunning] = useState<boolean>(false);
   const [activeStepTab, setActiveStepTab] = useState<'all' | 'act1' | 'act2' | 'act3'>('all');
 
   const isTa = language === 'ta';
+  const isHi = language === 'hi';
 
   const refreshCase = useCallback(() => {
     api.getCase(selectedCaseId).then((data) => {
@@ -33,9 +35,13 @@ export default function Home() {
     refreshCase();
   }, [refreshCase]);
 
-  // Handle language toggle
+  // Handle language switch
+  const handleSelectLanguage = (lang: Language) => {
+    setLanguage(lang);
+  };
+
   const handleToggleLanguage = () => {
-    setLanguage((prev) => (prev === 'ta' ? 'en' : 'ta'));
+    setLanguage((prev) => (prev === 'en' ? 'ta' : prev === 'ta' ? 'hi' : 'en'));
   };
 
   // Reset demo state
@@ -84,6 +90,7 @@ export default function Home() {
         onSelectPersona={setCurrentPersona}
         language={language}
         onToggleLanguage={handleToggleLanguage}
+        onSelectLanguage={handleSelectLanguage}
         onRunQuickDemo={handleRunQuickDemo}
         isQuickDemoRunning={isQuickDemoRunning}
         selectedCaseId={selectedCaseId}
@@ -101,6 +108,8 @@ export default function Home() {
               <span className="font-bold">
                 {isTa
                   ? '60 விநாடி நேரலை முன்னோட்டம்: தமிழ் குரல் பதிவு ➔ ஆவண ஊடுகதிர் ➔ மனித சரிபார்ப்பு ➔ வாரிசுப் பாதை ➔ இ-சேவை மனு'
+                  : isHi
+                  ? '60 सेकंड लाइव केस पूर्वावलोकन: वॉयस इंटेक ➔ दस्तावेज़ एक्स-रे ➔ मानवीय सत्यापन ➔ उत्तराधिकार मार्ग ➔ ई-सेवा आवेदन'
                   : '60s Live Case Walkthrough Active: Tamil Voice Intake ➔ Document X-Ray ➔ Human Verification ➔ Inheritance Path ➔ e-Sevai Dossier'}
               </span>
             </div>
@@ -123,11 +132,17 @@ export default function Home() {
             <div className="bg-white border border-[#D1DBD5] rounded-xl p-4 flex items-center justify-between text-xs shadow-xs">
               <div>
                 <span className="font-bold text-slate-900 block">
-                  {isTa ? 'பாக்கெட் ரசீது #4821 கிடைத்துவிட்டதா?' : 'Have you received Pocket Token #4821?'}
+                  {isTa
+                    ? 'பாக்கெட் ரசீது #4821 கிடைத்துவிட்டதா?'
+                    : isHi
+                    ? 'क्या आपको पॉकेट टोकन #4821 मिल गया?'
+                    : 'Have you received Pocket Token #4821?'}
                 </span>
                 <span className="text-slate-600">
                   {isTa
                     ? 'இ-சேவை மையத்திற்குச் சென்று ஆவணங்களை ஸ்கேன் செய்து சரிபார்க்கவும்.'
+                    : isHi
+                    ? 'जीवंत दस्तावेज़ एक्स-रे और मिसिंग-डॉक ट्रैकर का निरीक्षण करने के लिए जनएआई कैफ़े डेस्क पर स्विच करें।'
                     : 'Switch to JanAI Café Desk to inspect the living paper X-Ray & missing-doc tracker.'}
                 </span>
               </div>
@@ -135,7 +150,13 @@ export default function Home() {
                 onClick={() => setCurrentPersona('cafe')}
                 className="px-4 py-2 bg-[#0B6E4F] hover:bg-[#08523B] text-white font-bold rounded-lg transition flex items-center gap-1.5"
               >
-                <span>{isTa ? '2. இ-சேவை மேசைக்கு செல்க' : 'Go to JanAI Café Desk'}</span>
+                <span>
+                  {isTa
+                    ? '2. இ-சேவை மேசைக்கு செல்க'
+                    : isHi
+                    ? '2. जनएआई डेस्क पर जाएं'
+                    : 'Go to JanAI Café Desk'}
+                </span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -147,7 +168,9 @@ export default function Home() {
           <div className="space-y-6">
             {/* Act Step Tabs */}
             <div className="flex items-center gap-2 border-b border-[#D1DBD5] pb-3 text-xs font-semibold">
-              <span className="text-[#4B5563] uppercase mr-2">{isTa ? 'நிலைகள்:' : 'Workflow Stages:'}</span>
+              <span className="text-[#4B5563] uppercase mr-2">
+                {isTa ? 'நிலைகள்:' : isHi ? 'चरण:' : 'Workflow Stages:'}
+              </span>
               <button
                 onClick={() => setActiveStepTab('all')}
                 className={`px-3 py-1.5 rounded-lg transition ${
@@ -156,7 +179,7 @@ export default function Home() {
                     : 'text-slate-600 bg-white border border-[#D1DBD5]'
                 }`}
               >
-                {isTa ? 'அனைத்து 3 நிலைகளும்' : 'All 3 Acts'}
+                {isTa ? 'அனைத்து 3 நிலைகளும்' : isHi ? 'सभी 3 चरण' : 'All 3 Acts'}
               </button>
               <button
                 onClick={() => setActiveStepTab('act1')}

@@ -5,6 +5,7 @@ import { Language } from '@/types/nilamtrace';
 import { Phone, PhoneOff, Mic, Volume2, Sparkles, CheckCircle2, Ticket, QrCode } from 'lucide-react';
 import enDict from '@/i18n/en.json';
 import taDict from '@/i18n/ta.json';
+import hiDict from '@/i18n/hi.json';
 
 interface Act1MissedCallPhoneProps {
   language: Language;
@@ -17,8 +18,9 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
   onReceiptGenerated,
   caseId,
 }) => {
-  const dict = language === 'ta' ? taDict : enDict;
+  const dict = language === 'ta' ? taDict : language === 'hi' ? hiDict : enDict;
   const isTa = language === 'ta';
+  const isHi = language === 'hi';
 
   const [callStatus, setCallStatus] = useState<'idle' | 'calling' | 'connected' | 'ended'>('idle');
   const [callDuration, setCallDuration] = useState(0);
@@ -79,13 +81,13 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
       // Farmer speaks
       const farmerWords = dict.phone.sampleFarmerSpeech;
       setDisplayedTranscript(farmerWords);
-      speakText(farmerWords, isTa ? 'ta-IN' : 'en-IN');
+      speakText(farmerWords, isTa ? 'ta-IN' : isHi ? 'hi-IN' : 'en-IN');
 
       // Agent speaks after farmer finishes (simulated 4.5s)
       setTimeout(() => {
         const agentWords = dict.phone.agentResponse;
         setAgentResponseText(agentWords);
-        speakText(agentWords, isTa ? 'ta-IN' : 'en-IN');
+        speakText(agentWords, isTa ? 'ta-IN' : isHi ? 'hi-IN' : 'en-IN');
 
         // Call concludes & thermal pocket-receipt is issued
         setTimeout(() => {
@@ -155,7 +157,7 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
                     </div>
                     <h3 className="text-lg font-bold text-white tracking-wide">1800-NILAM-TR</h3>
                     <p className="text-xs text-emerald-300/80 mt-1">
-                      {isTa ? 'தமிழ்நாடு அரசு நில குரல் AI' : 'Tamil Nadu Govt Land Voice AI'}
+                      {isTa ? 'தமிழ்நாடு அரசு நில குரல் AI' : isHi ? 'तमिलनाडु सरकार भूमि वॉयस एआई' : 'Tamil Nadu Govt Land Voice AI'}
                     </p>
                     <span className="mt-3 text-[11px] bg-emerald-950/80 text-emerald-300 px-3 py-1 rounded-full border border-emerald-600/40">
                       {dict.phone.statusIdle}
@@ -204,7 +206,7 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
                     </div>
                     <h3 className="text-sm font-bold text-white">{dict.phone.statusEnded}</h3>
                     <p className="text-xs text-emerald-300/80 mt-1">
-                      {isTa ? 'SMS ரசீது அனுப்பப்பட்டது' : 'Token dispatched via SMS'}
+                      {isTa ? 'SMS ரசீது அனுப்பப்பட்டது' : isHi ? 'एसएमएस टोकन रसीद भेजी गई' : 'Token dispatched via SMS'}
                     </p>
                     <div className="mt-4 bg-emerald-950/90 border border-emerald-500/50 px-4 py-2 rounded-xl text-center">
                       <span className="text-[10px] text-emerald-400 block uppercase font-mono">Token</span>
@@ -262,7 +264,11 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
                 {displayedTranscript && (
                   <div className="bg-white p-3.5 rounded-lg border-l-4 border-amber-500 shadow-xs">
                     <span className="font-bold text-amber-800 block mb-1">
-                      {isTa ? '🗣 விவசாயி முருகன் (குரல் பதிவு):' : '🗣 Farmer Murugan (Applicant Voice):'}
+                      {isTa
+                        ? '🗣 விவசாயி முருகன் (குரல் பதிவு):'
+                        : isHi
+                        ? '🗣 किसान मुरुगन (आवाज़ रिकॉर्डिंग):'
+                        : '🗣 Farmer Murugan (Applicant Voice):'}
                     </span>
                     <p className="text-[#111827] italic font-medium">"{displayedTranscript}"</p>
                   </div>
@@ -271,7 +277,11 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
                 {agentResponseText && (
                   <div className="bg-emerald-50/80 p-3.5 rounded-lg border-l-4 border-[#0B6E4F] shadow-xs">
                     <span className="font-bold text-[#0B6E4F] block mb-1">
-                      {isTa ? '🤖 நிலம் AI குரல் பதில்:' : '🤖 NilamTrace Land AI Response:'}
+                      {isTa
+                        ? '🤖 நிலம் AI குரல் பதில்:'
+                        : isHi
+                        ? '🤖 नीलमट्रेस भूमि एआई उत्तर:'
+                        : '🤖 NilamTrace Land AI Response:'}
                     </span>
                     <p className="text-[#08523B] font-medium">{agentResponseText}</p>
                   </div>
@@ -283,6 +293,8 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
                 <p className="text-xs font-medium">
                   {isTa
                     ? '1800-NILAM-TR எண்ணை அழைக்கவும் அல்லது மாதிரி குரல் பொத்தானை அழுத்தவும்.'
+                    : isHi
+                    ? '1800-NILAM-TR पर कॉल करें या वॉइस इनटेक अनुभव करने के लिए नमूना चलाएं।'
                     : 'Click "Call 1800-NILAM-TR" on the phone to experience zero-literacy Tamil voice intake.'}
                 </p>
                 <button
@@ -312,7 +324,7 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
             <div className="grid grid-cols-2 gap-4 my-3 text-xs">
               <div>
                 <span className="text-[10px] text-slate-500 uppercase block">Applicant / விவசாயி</span>
-                <span className="font-bold text-slate-900">{isTa ? 'முருகன் சண்முகம்' : 'Murugan Shanmugam'}</span>
+                <span className="font-bold text-slate-900">{isTa ? 'முருகன் சண்முகம்' : isHi ? 'मुरुगन षण्मुगम' : 'Murugan Shanmugam'}</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500 uppercase block">Phone / தொலைபேசி</span>

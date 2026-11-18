@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import enDict from '@/i18n/en.json';
 import taDict from '@/i18n/ta.json';
+import hiDict from '@/i18n/hi.json';
 
 interface Act2DocumentXRayProps {
   caseData: CaseState;
@@ -26,8 +27,9 @@ interface Act2DocumentXRayProps {
 }
 
 export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, language, onRefreshCase }) => {
-  const dict = language === 'ta' ? taDict : enDict;
+  const dict = language === 'ta' ? taDict : language === 'hi' ? hiDict : enDict;
   const isTa = language === 'ta';
+  const isHi = language === 'hi';
 
   const [activeTab, setActiveTab] = useState<'dual' | 'deed' | 'patta'>('dual');
   const [showOverlayMask, setShowOverlayMask] = useState<boolean>(true);
@@ -87,7 +89,7 @@ export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, la
               }`}
             >
               <Layers className="w-3.5 h-3.5 inline mr-1" />
-              {isTa ? 'இரு ஆவண ஒப்பீடு' : 'Dual Ledger (1994 vs 2024)'}
+              {isTa ? 'இரு ஆவண ஒப்பீடு' : isHi ? 'द्वि-दस्तावेज़ तुलना (1994 बनाम 2024)' : 'Dual Ledger (1994 vs 2024)'}
             </button>
             <button
               onClick={() => setActiveTab('deed')}
@@ -132,10 +134,14 @@ export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, la
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#92400E]">
-                {isTa ? 'ஆவணங்கள் நிலை அறிக்கை (Document Inventory)' : 'Multi-Visit Document Inventory Tracker'}
+                {isTa
+                  ? 'ஆவணங்கள் நிலை அறிக்கை (Document Inventory)'
+                  : isHi
+                  ? 'बहु-भ्रमण दस्तावेज़ इन्वेंट्री ट्रैकर'
+                  : 'Multi-Visit Document Inventory Tracker'}
               </h3>
               <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-                {isTa ? 'வாரிசுச் சான்றிதழ் தேவை' : 'REV-114 Action Needed'}
+                {isTa ? 'வாரிசுச் சான்றிதழ் தேவை' : isHi ? 'REV-114 वारिस प्रमाण पत्र आवश्यक' : 'REV-114 Action Needed'}
               </span>
             </div>
             <p className="text-xs text-[#B45309] mt-1">
@@ -170,7 +176,17 @@ export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, la
                     <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
                       <span className="font-mono text-[#0B6E4F]">Fee: ₹{doc.official_fee_inr}</span>
                       <span className={`font-bold ${isAvail ? 'text-emerald-700' : 'text-red-700'}`}>
-                        {isAvail ? (isTa ? 'கைவசம் உள்ளது ✅' : 'AVAILABLE ✅') : (isTa ? 'பெற வேண்டும் ❌' : 'MISSING ❌')}
+                        {isAvail
+                          ? isTa
+                            ? 'கைவசம் உள்ளது ✅'
+                            : isHi
+                            ? 'उपलब्ध है ✅'
+                            : 'AVAILABLE ✅'
+                          : isTa
+                          ? 'பெற வேண்டும் ❌'
+                          : isHi
+                          ? 'प्राप्त करना है ❌'
+                          : 'MISSING ❌'}
                       </span>
                     </div>
                   </div>
@@ -293,13 +309,25 @@ export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, la
                   : 'bg-amber-100 text-amber-800'
               }`}
             >
-              {allCriticalVerified ? (isTa ? 'சரிபார்க்கப்பட்டது ✅' : 'Verified ✅') : (isTa ? 'சரிபார்ப்பு தேவை ⚠️' : 'Action Required ⚠️')}
+              {allCriticalVerified
+                ? isTa
+                  ? 'சரிபார்க்கப்பட்டது ✅'
+                  : isHi
+                  ? 'सत्यापित ✅'
+                  : 'Verified ✅'
+                : isTa
+                ? 'சரிபார்ப்பு தேவை ⚠️'
+                : isHi
+                ? 'सत्यापन आवश्यक ⚠️'
+                : 'Action Required ⚠️'}
             </span>
           </div>
 
           <p className="text-xs text-[#4B5563]">
             {isTa
               ? 'கணினி தானாக ஏற்றுமதி செய்யாது. ஒவ்வொரு முக்கிய புலத்தையும் பணியாளர் நேரடியாக சரிபார்க்க வேண்டும்.'
+              : isHi
+              ? 'एआई स्वतः स्वीकार नहीं करता। प्रत्येक महत्वपूर्ण फ़ील्ड को ऑपरेटर द्वारा सत्यापित किया जाना चाहिए।'
               : 'Zero black-box AI acceptance. Operator must verify each extracted field before dossier can be generated.'}
           </p>
 
@@ -328,7 +356,7 @@ export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, la
                         </span>
                         {isLowConf && (
                           <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-1 rounded">
-                            {isTa ? 'குறைந்த நம்பிக்கை' : 'Low Conf'}
+                            {isTa ? 'குறைந்த நம்பிக்கை' : isHi ? 'कम विश्वास' : 'Low Conf'}
                           </span>
                         )}
                       </div>
@@ -349,7 +377,17 @@ export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, la
                           : 'bg-white text-[#111827] border-gray-300 hover:border-[#0B6E4F]'
                       }`}
                     >
-                      {isVerified ? (isTa ? 'சரிபார்க்கப்பட்டது ✓' : 'Verified ✓') : (isTa ? 'சரிபார்க்க' : 'Verify')}
+                      {isVerified
+                        ? isTa
+                          ? 'சரிபார்க்கப்பட்டது ✓'
+                          : isHi
+                          ? 'सत्यापित ✓'
+                          : 'Verified ✓'
+                        : isTa
+                        ? 'சரிபார்க்க'
+                        : isHi
+                        ? 'सत्यापित करें'
+                        : 'Verify'}
                     </button>
                   </div>
                 </div>
@@ -371,6 +409,8 @@ export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, la
                 <span>
                   {isTa
                     ? 'அனைத்து முக்கிய புலங்களும் சரிபார்க்கப்பட்டன. படி 3க்கு செல்லலாம்.'
+                    : isHi
+                    ? 'सभी महत्वपूर्ण फ़ील्ड सत्यापित हो गए हैं। चरण 3 के लिए तैयार।'
                     : 'All critical fields verified by human operator. Ready for Act 3.'}
                 </span>
               </>
@@ -380,6 +420,8 @@ export const Act2DocumentXRay: React.FC<Act2DocumentXRayProps> = ({ caseData, la
                 <span>
                   {isTa
                     ? 'முக்கிய புலங்களை (தந்தை பெயர், சர்வே எண்) சரிபார்க்கவும்.'
+                    : isHi
+                    ? 'कृपया आगे बढ़ने के लिए महत्वपूर्ण फ़ील्ड (स्वर्गीय पिता का नाम, सर्वे नं) सत्यापित करें।'
                     : 'Please verify critical fields (Deceased Name, Survey No) to proceed.'}
                 </span>
               </>
