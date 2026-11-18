@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: [
+    'adrianna-propunishment-toccara.ngrok-free.dev',
+    '*.ngrok-free.dev',
+    '*.ngrok.app',
+    '*.ngrok.io',
+    '*.localtunnel.me',
+    'localhost:3000',
+    '127.0.0.1:3000',
+  ],
   /* config options here */
   async rewrites() {
     return [
