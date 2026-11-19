@@ -53,10 +53,23 @@ app = FastAPI(
 )
 
 # Robust CORS Configuration: supports localhost, local LAN IPs, Vercel preview/production domains, and mobile simulators
+def _get_cors_headers(request: Request) -> Dict[str, str]:
+    origin = request.headers.get("origin")
+    allowed = origin if origin else "*"
+    return {
+        "Access-Control-Allow-Origin": allowed,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
+        "Access-Control-Allow-Headers": request.headers.get("access-control-request-headers", "*"),
+        "Access-Control-Expose-Headers": "Content-Disposition, Content-Type, Content-Length",
+        "Access-Control-Max-Age": "86400",
+    }
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origin_regex=r"^https?://.*",
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition", "Content-Type", "Content-Length"],
@@ -65,14 +78,14 @@ app.add_middleware(
 
 @app.middleware("http")
 async def add_cors_headers_middleware(request: Request, call_next):
-    """Ensure CORS headers are attached to every single HTTP response, including exceptions."""
+    """Ensure CORS headers are attached to every single HTTP response, including preflights and exceptions."""
+    cors_headers = _get_cors_headers(request)
     if request.method == "OPTIONS":
-        response = Response(status_code=200)
-    else:
-        response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
-    response.headers["Access-Control-Allow-Headers"] = "*"
+        return Response(status_code=204, headers=cors_headers)
+
+    response = await call_next(request)
+    for header_name, header_value in cors_headers.items():
+        response.headers[header_name] = header_value
     return response
 
 
@@ -82,7 +95,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail, "success": False, "status_code": exc.status_code},
-        headers={"Access-Control-Allow-Origin": "*"},
+        headers=_get_cors_headers(request),
     )
 
 
@@ -92,7 +105,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=422,
         content={"detail": exc.errors(), "success": False, "message": "Request payload validation error"},
-        headers={"Access-Control-Allow-Origin": "*"},
+        headers=_get_cors_headers(request),
     )
 
 
@@ -102,21 +115,14 @@ async def generic_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server processing error", "error": str(exc), "success": False},
-        headers={"Access-Control-Allow-Origin": "*"},
+        headers=_get_cors_headers(request),
     )
 
 
 @app.options("/{rest_of_path:path}")
-async def preflight_handler(rest_of_path: str):
+async def preflight_handler(request: Request, rest_of_path: str):
     """Explicit OPTIONS preflight endpoint for complex browser fetch headers."""
-    return Response(
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
-            "Access-Control-Allow-Headers": "*",
-        },
-    )
+    return Response(status_code=204, headers=_get_cors_headers(request))
 
 
 @app.get("/api/health")
