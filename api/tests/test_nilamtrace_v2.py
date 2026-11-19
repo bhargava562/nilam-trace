@@ -320,3 +320,30 @@ def test_end_to_end_verified_packet_pdf():
     assert pdf_resp.headers["content-type"] == "application/pdf"
     assert pdf_resp.content.startswith(b"%PDF-")
     assert len(pdf_resp.content) > 1000
+
+
+# ---------------------------------------------------------------------------
+# Test 13: Custom PDF upload endpoint for judge live-testing
+# ---------------------------------------------------------------------------
+def test_custom_pdf_upload_endpoint():
+    """
+    Verifies Bug 3 (Custom PDF Upload):
+    POST /api/upload-pdf accepts judge/user PDF, extracts size, page count,
+    and returns structured OCR extraction with field predictions.
+    """
+    img = Image.new("RGB", (200, 200), color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PDF")
+    pdf_bytes = buf.getvalue()
+
+    resp = client.post(
+        "/api/upload-pdf",
+        files={"file": ("judge_sample_patta.pdf", io.BytesIO(pdf_bytes), "application/pdf")},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert data["filename"] == "judge_sample_patta.pdf"
+    assert data["size_kb"] > 0
+    assert data["page_count"] >= 1
+    assert "fields" in data

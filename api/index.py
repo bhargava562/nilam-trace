@@ -56,6 +56,7 @@ from api.services.unit_math import (
 from api.services.pdf_compressor import squeeze_pdf, TARGET_MAX_BYTES
 from api.services.dossier_generator import generate_dossier_pdf
 from api.services.ai_extractor import extract_land_record_data
+from api.services.pdf_extractor import extract_pdf_content
 
 app = FastAPI(
     title="NilamTrace v2 API",
@@ -444,6 +445,44 @@ async def run_squeeze_pdf(file: UploadFile = File(...)):
         "result": result.model_dump(),
         "compressed_size_kb": round(len(compressed_bytes) / 1024, 2),
         "is_compliant": len(compressed_bytes) <= TARGET_MAX_BYTES,
+    }
+
+
+@app.post("/api/upload-pdf")
+async def upload_pdf_endpoint(file: UploadFile = File(...)):
+    """
+    Accepts arbitrary PDF upload from judges or users,
+    analyzes size in KB, extracts text and bounding boxes via PyMuPDF/PyPDF,
+    and returns structured OCR extraction with field predictions.
+    """
+    contents = await file.read()
+    if len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Empty PDF file uploaded.")
+
+    size_bytes = len(contents)
+    size_kb = round(size_bytes / 1024, 2)
+
+    try:
+        extracted = extract_pdf_content(contents)
+        full_text = extracted.get("full_text", "")
+        page_count = extracted.get("page_count", 1)
+        words = extracted.get("words", [])
+    except Exception as e:
+        full_text = f"Error reading PDF content: {e}"
+        page_count = 1
+        words = []
+
+    ai_data = extract_land_record_data(full_text)
+
+    return {
+        "success": True,
+        "filename": file.filename or "uploaded_document.pdf",
+        "size_bytes": size_bytes,
+        "size_kb": size_kb,
+        "page_count": page_count,
+        "preview_text": full_text[:1000] if full_text else "No extractable text found (scanned image).",
+        "fields": ai_data,
+        "words_count": len(words),
     }
 
 

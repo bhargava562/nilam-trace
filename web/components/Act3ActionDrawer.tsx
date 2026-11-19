@@ -14,6 +14,9 @@ import {
   Info,
   Check,
   Sparkles,
+  AlertTriangle,
+  Volume2,
+  Play,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { apiClient } from '@/lib/apiClient';
@@ -41,11 +44,43 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
   const [squeezeProgress, setSqueezeProgress] = useState<number>(100);
   const [squeezedSizeKB, setSqueezedSizeKB] = useState<number>(338);
 
-  const [otpValue, setOtpValue] = useState<string>('1234');
+  const [otpValue, setOtpValue] = useState<string>('');
   const [isApproved, setIsApproved] = useState<boolean>(caseData.hitl_approved || false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [stampSlammed, setStampSlammed] = useState<boolean>(caseData.hitl_approved || false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [hasPlayedVoiceConsent, setHasPlayedVoiceConsent] = useState<boolean>(false);
+  const [isPlayingVoiceConsent, setIsPlayingVoiceConsent] = useState<boolean>(false);
+
+  const handlePlayFarmerVoiceConsent = () => {
+    setIsPlayingVoiceConsent(true);
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const text = isTa
+        ? 'வணக்கம், நான் பாக்கம் கிராமத்து செல்வராஜ் பேசுகிறேன். என் தந்தை சுப்பிரமணியம் மறைவுக்குப் பின் எங்களது 43.24 சென்ட் நிலத்தை கூட்டுப் பட்டா செய்ய முழு சம்மதம் அளிக்கிறேன்.'
+        : isHi
+        ? 'नमस्ते, मैं पक्कम गांव से सेल्वराज बोल रहा हूँ। मेरे पिता सुब्रमण्यम के निधन के बाद हमारी 43.24 सेंट भूमि के संयुक्त पट्टे हेतु मैं अपनी पूर्ण सहमति देता हूँ।'
+        : 'Hello, I am S. Selvaraj from Pakkam. Following my late father Subramaniam’s demise, I hereby provide full telephonic consent for the Joint Patta mutation of 43.24 cents.';
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = isTa ? 'ta-IN' : isHi ? 'hi-IN' : 'en-IN';
+      utterance.rate = 0.95;
+      utterance.onend = () => {
+        setIsPlayingVoiceConsent(false);
+        setHasPlayedVoiceConsent(true);
+      };
+      utterance.onerror = () => {
+        setIsPlayingVoiceConsent(false);
+        setHasPlayedVoiceConsent(true);
+      };
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setTimeout(() => {
+        setIsPlayingVoiceConsent(false);
+        setHasPlayedVoiceConsent(true);
+      }, 2500);
+    }
+  };
 
   const handleSelectPath = async (path: InheritancePath) => {
     setSelectedPath(path);
@@ -79,7 +114,11 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
   };
 
   const handleHITLApprove = async () => {
-    if (otpValue !== '1234') {
+    if (!hasPlayedVoiceConsent) {
+      handlePlayFarmerVoiceConsent();
+    }
+
+    if (otpValue.trim() !== '1234') {
       setErrorMessage(isTa ? 'தவறான OTP. 1234 ஐப் பயன்படுத்தவும்' : isHi ? 'अमान्य OTP. 1234 दर्ज करें' : 'Invalid PIN. Use 1234 for demo');
       return;
     }
@@ -115,8 +154,25 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
 
   return (
     <div className="h-full flex flex-col justify-between overflow-hidden">
+      {/* Prominent Statutory Warning: REV-114 Missing Notice */}
+      <div className="bg-amber-50 border border-amber-300 rounded-xl px-3 py-1.5 mb-2 flex items-center justify-between text-xs text-amber-900 shadow-2xs shrink-0">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+          <span className="font-bold">
+            {isTa
+              ? '⚠️ REV-114 வாரிசுச் சான்றிதழ் விடுபட்டுள்ளது (இ-சேவை அரசு கட்டணம்: ₹60) — பட்டா மாறுதலுக்கு வாரிசுச் சான்றிதழ் கட்டாயம்!'
+              : isHi
+              ? '⚠️ REV-114 कानूनी वारिस प्रमाण-पत्र अनुपलब्ध (ई-सेवा शुल्क: ₹60) — पट्टा परिवर्तन हेतु अनिवार्य!'
+              : '⚠️ REV-114 Varisu Certificate Missing (₹60 at e-Sevai) — Statutory requirement for legal heir mutation!'}
+          </span>
+        </div>
+        <span className="text-[10px] bg-amber-200 text-amber-900 font-mono font-bold px-2 py-0.5 rounded shrink-0">
+          REV-114 REQUIRED (₹60)
+        </span>
+      </div>
+
       {/* 3-Column Horizontal Flow Layout (Zero page scroll) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 h-full items-stretch min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 items-stretch min-h-0 overflow-hidden">
         {/* COLUMN 1 (35%): Family Members & Administrative Path Choice */}
         <div className="lg:col-span-4 bg-white rounded-xl p-3.5 shadow-xs border border-[#D1DBD5] flex flex-col justify-between overflow-hidden">
           <div>
@@ -179,7 +235,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                     : 'All heirs listed jointly in Patta.'}
                 </p>
                 <div className="text-[10px] font-mono font-bold text-emerald-800 mt-1">
-                  Stamp: <strong>₹0 (Zero)</strong> · Fee: ₹60
+                  {isTa ? 'முத்திரைத்தாள்: ₹0 (இலவசம்) · கட்டணம்: ₹60' : isHi ? 'स्टाम्प: ₹0 (शून्य) · शुल्क: ₹60' : 'Stamp: ₹0 (Zero) · Fee: ₹60'}
                 </div>
               </div>
 
@@ -206,7 +262,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                     : 'Co-heirs relinquish shares at Sub-Registrar.'}
                 </p>
                 <div className="text-[10px] font-mono font-bold text-slate-600 mt-1">
-                  Concession: <strong>1% (Capped)</strong>
+                  {isTa ? 'சலுகை: 1% (வரம்பிற்கு உட்பட்டது)' : isHi ? 'रियायत: 1% (अधिकतम सीमा)' : 'Concession: 1% (Capped)'}
                 </div>
               </div>
             </div>
@@ -214,7 +270,11 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
 
           {/* Micro Legal Footnote */}
           <div className="text-[10px] text-slate-400 pt-2 border-t border-slate-100 leading-tight">
-            ⓘ Non-binding intake; formal title requires Tahsildar REV-114 certificate.
+            {isTa
+              ? 'ⓘ தகவல் பதிவு மட்டுமே; இறுதிப் பட்டா மாறுதலுக்கு வட்டாட்சியர் REV-114 வாரிசுச் சான்றிதழ் அவசியம்.'
+              : isHi
+              ? 'ⓘ केवल सूचनात्मक; औपचारिक पट्टा परिवर्तन हेतु तहसीलदार REV-114 प्रमाण-पत्र आवश्यक।'
+              : 'ⓘ Non-binding intake; formal title requires Tahsildar REV-114 certificate.'}
           </div>
         </div>
 
@@ -227,7 +287,7 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                 <span>{isTa ? '2. 400KB சுருக்கக் கருவி' : isHi ? '2. 400KB कंप्रेसर' : '2. 400 KB Squeeze'}</span>
               </h3>
               <span className="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
-                Portal Ready
+                {isTa ? 'போர்டல் தயார்' : isHi ? 'पोर्टल तैयार' : 'Portal Ready'}
               </span>
             </div>
 
@@ -242,7 +302,9 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
             {/* Squeeze Gauge Box */}
             <div className="bg-[#F4F7F5] p-3 rounded-xl border border-[#D1DBD5] space-y-2.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-800">1994 Sale Deed Scan</span>
+                <span className="font-semibold text-slate-800">
+                  {isTa ? '1994 கிரையப் பத்திர ஸ்கேன்' : isHi ? '1994 बिक्री विलेख स्कैन' : '1994 Sale Deed Scan'}
+                </span>
                 <span className="font-mono font-bold text-xs text-[#0B6E4F]">{squeezedSizeKB} KB / 390 KB</span>
               </div>
 
@@ -311,24 +373,95 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                 : 'Landowner voice consent playback + Operator MFA PIN (1234) gate.'}
             </p>
 
+            {/* Interactive Voice Consent Playback */}
+            <div className="bg-[#F4F7F5] p-2.5 rounded-xl border border-[#D1DBD5] mb-2.5 text-xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-semibold text-slate-700 flex items-center gap-1.5 text-[11px]">
+                  <Volume2 className="w-3.5 h-3.5 text-[#0B6E4F]" />
+                  <span>{isTa ? 'விவசாயி குரல் சம்மதம்' : isHi ? 'किसान वॉयस सहमति' : 'Farmer Voice Consent'}</span>
+                </span>
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                    hasPlayedVoiceConsent
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-amber-100 text-amber-800 border border-amber-300'
+                  }`}
+                >
+                  {hasPlayedVoiceConsent ? 'VERIFIED ✓' : 'PENDING'}
+                </span>
+              </div>
+              <button
+                onClick={handlePlayFarmerVoiceConsent}
+                disabled={isPlayingVoiceConsent}
+                className={`w-full py-1.5 px-2.5 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition ${
+                  hasPlayedVoiceConsent
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                    : 'bg-white text-[#0B6E4F] border-[#0B6E4F] hover:bg-emerald-50'
+                }`}
+              >
+                <Play className="w-3 h-3 fill-current" />
+                <span>
+                  {isPlayingVoiceConsent
+                    ? (isTa ? 'ஒலிக்கிறது...' : isHi ? 'चल रहा है...' : 'Playing Audio...')
+                    : hasPlayedVoiceConsent
+                    ? (isTa ? 'குரல் சம்மதம் கேட்கப்பட்டது (மீண்டும் கேட்க)' : isHi ? 'सहमति सुनी गई (पुनः सुनें)' : 'Voice Consent Verified (Replay)')
+                    : (isTa ? 'விவசாயி குரல் சம்மதம் கேட்க' : isHi ? 'किसान वॉयस सहमति सुनें' : 'Play Farmer Voice Consent')}
+                </span>
+              </button>
+            </div>
+
             {/* OTP Input & Voice Consent Trigger */}
             {!isApproved ? (
               <div className="bg-[#F4F7F5] p-2.5 rounded-xl border border-[#D1DBD5] space-y-2">
-                <div className="flex gap-2">
+                {/* Farmer Voice Consent Playback Button */}
+                <button
+                  type="button"
+                  onClick={handlePlayFarmerVoiceConsent}
+                  disabled={isPlayingVoiceConsent}
+                  className={`w-full py-1.5 px-2.5 rounded-lg text-xs font-semibold transition flex items-center justify-between border ${
+                    hasPlayedVoiceConsent
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 shadow-2xs'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Volume2 className={`w-3.5 h-3.5 ${isPlayingVoiceConsent ? 'animate-bounce text-[#0B6E4F]' : 'text-emerald-700'}`} />
+                    <span>
+                      {isPlayingVoiceConsent
+                        ? (isTa ? 'குரல் ஒப்புதல் ஒலிக்கிறது...' : isHi ? 'वॉयस सहमति बज रही है...' : 'Playing Voice Consent...')
+                        : hasPlayedVoiceConsent
+                        ? (isTa ? 'குரல் ஒப்புதல் உறுதி செய்யப்பட்டது ✅' : isHi ? 'वॉयस सहमति सत्यापित ✅' : 'Farmer Voice Consent Verified ✅')
+                        : (isTa ? '▶ விவசாயி குரல் சம்மதம் கேட்க' : isHi ? '▶ किसान वॉयस सहमति सुनें' : '▶ Play Farmer Voice Consent')}
+                    </span>
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">0:06</span>
+                </button>
+
+                {/* PIN Input with Quick Fill */}
+                <div className="flex items-center gap-1.5">
                   <input
                     type="password"
                     maxLength={4}
+                    placeholder="PIN"
                     value={otpValue}
                     onChange={(e) => setOtpValue(e.target.value)}
-                    className="w-20 px-2 py-1.5 bg-white border border-[#D1DBD5] rounded-lg text-center font-mono font-bold text-sm tracking-widest focus:outline-none focus:border-[#0B6E4F]"
+                    className="w-16 px-2 py-1.5 bg-white border border-[#D1DBD5] rounded-lg text-center font-mono font-bold text-sm tracking-widest focus:outline-none focus:border-[#0B6E4F]"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setOtpValue('1234')}
+                    className="px-2 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-mono text-[10px] font-bold rounded transition"
+                    title="Quick-Fill Demo PIN 1234"
+                  >
+                    1234
+                  </button>
                   <button
                     onClick={handleHITLApprove}
                     disabled={isSubmitting}
-                    className="flex-1 py-1.5 bg-[#0B6E4F] hover:bg-[#08523B] text-white font-bold text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-1"
+                    className="flex-1 py-1.5 bg-[#0B6E4F] hover:bg-[#08523B] text-white font-bold text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-1 active:scale-98"
                   >
                     <Stamp className="w-3.5 h-3.5" />
-                    <span>{isSubmitting ? '...' : (isTa ? 'ஒப்புதல் (1234)' : isHi ? 'स्वीकृति (1234)' : 'Verify & Unlock')}</span>
+                    <span>{isSubmitting ? '...' : (isTa ? 'ஒப்புதல் (Unlock)' : isHi ? 'स्वीकृति (Unlock)' : 'Verify & Unlock')}</span>
                   </button>
                 </div>
                 {errorMessage && <p className="text-[10px] text-red-600 font-bold">{errorMessage}</p>}
@@ -355,7 +488,13 @@ export const Act3ActionDrawer: React.FC<Act3ActionDrawerProps> = ({
                   className="flex-1 py-2.5 bg-[#0B6E4F] hover:bg-[#08523B] text-white text-xs font-bold rounded-lg shadow-md transition flex items-center justify-center gap-1.5 active:scale-98"
                 >
                   <Download className="w-4 h-4" />
-                  <span>{isTa ? 'மனு பதிவிறக்குக (PDF)' : isHi ? 'आवेदन डाउनलोड करें (PDF)' : 'Download Packet (PDF)'}</span>
+                  <span>
+                    {isTa
+                      ? 'மனு பதிவிறக்குக (PDF · REV-114 நிலுவை)'
+                      : isHi
+                      ? 'आवेदन डाउनलोड करें (PDF · REV-114 लंबित)'
+                      : 'Download Packet (PDF · REV-114 Notice)'}
+                  </span>
                 </a>
 
                 {/* Animated Red-Ink VAO Seal */}

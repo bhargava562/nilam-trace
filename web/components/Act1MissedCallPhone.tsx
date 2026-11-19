@@ -94,7 +94,7 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
         // Call concludes & thermal pocket-receipt is issued
         setTimeout(() => {
           setCallStatus('ended');
-          const code = caseId === '9012' ? '#9012' : '#4821';
+          const code = `#${caseId}`;
           setPocketCode(code);
           onReceiptGenerated(code);
         }, 4500);
@@ -108,7 +108,7 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
     }
     setCallStatus('ended');
     setIsSpeaking(false);
-    const code = caseId === '9012' ? '#9012' : '#4821';
+    const code = `#${caseId}`;
     setPocketCode(code);
     onReceiptGenerated(code);
   };
@@ -193,9 +193,11 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
                       {isTa ? 'SMS ரசீது அனுப்பப்பட்டது' : isHi ? 'एसएमएस टोकन रसीद भेजी गई' : 'Token dispatched via SMS'}
                     </p>
                     <div className="mt-2.5 bg-emerald-950/90 border border-emerald-500/50 px-3 py-1.5 rounded-lg text-center">
-                      <span className="text-[9px] text-emerald-400 block uppercase font-mono">Pocket Token</span>
+                      <span className="text-[9px] text-emerald-400 block uppercase font-mono">
+                        {isTa ? 'பாக்கெட் டோக்கன்' : isHi ? 'पॉकेट टोकन' : 'Pocket Token'}
+                      </span>
                       <span className="text-lg font-mono font-bold text-white tracking-widest">
-                        {pocketCode || '#4821'}
+                        {pocketCode || `#${caseId}`}
                       </span>
                     </div>
                   </div>
@@ -249,7 +251,7 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
                   {displayedTranscript && (
                     <div className="bg-amber-50/80 p-2.5 rounded-lg border-l-3 border-amber-500">
                       <span className="text-[10px] font-bold text-amber-800 block">
-                        {isTa ? '🗣 விவசாயி முருகன்:' : isHi ? '🗣 किसान मुरुगन:' : '🗣 Farmer Murugan:'}
+                        {isTa ? '🗣 விவசாயி எஸ். செல்வராஜ்:' : isHi ? '🗣 किसान एस. सेल्वराज:' : '🗣 Farmer S. Selvaraj:'}
                       </span>
                       <p className="text-slate-800 line-clamp-2 italic font-medium">"{displayedTranscript}"</p>
                     </div>
@@ -278,7 +280,7 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
             </div>
 
             <div className="text-[11px] text-slate-500 border-t border-[#D1DBD5]/40 pt-1.5 flex justify-between">
-              <span>{isTa ? 'கட்டணமில்லா எண்: 1800-NILAM-TR' : 'Toll-Free Helpline'}</span>
+              <span>{isTa ? 'கட்டணமில்லா எண்: 1800-NILAM-TR' : isHi ? 'टोल-फ्री हेल्पलाइन: 1800-NILAM-TR' : 'Toll-Free Helpline: 1800-NILAM-TR'}</span>
               <button onClick={handleStartCall} className="text-[#0B6E4F] font-bold hover:underline">
                 {dict.phone.playSample} ➔
               </button>
@@ -290,23 +292,41 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
             <div className="flex items-center justify-between border-b border-dashed border-slate-300 pb-2">
               <div className="flex items-center gap-1.5">
                 <Ticket className="w-4 h-4 text-[#0B6E4F]" />
-                <span className="font-bold text-xs text-[#0B6E4F]">GOVT OF TAMIL NADU · REVENUE RECEIPT</span>
+                <span className="font-bold text-xs text-[#0B6E4F]">
+                  {isTa
+                    ? 'தமிழ்நாடு அரசு · வருவாய்த்துறை ரசீது'
+                    : isHi
+                    ? 'तमिलनाडु सरकार · राजस्व रसीद'
+                    : 'GOVT OF TAMIL NADU · REVENUE RECEIPT'}
+                </span>
               </div>
               <span className="font-mono text-[10px] text-slate-500">18-Nov-2026</span>
             </div>
 
             <div className="grid grid-cols-3 gap-2 my-2 text-[11px]">
               <div>
-                <span className="text-[9px] text-slate-400 block uppercase">Applicant</span>
-                <span className="font-bold text-slate-900">{isTa ? 'முருகன் சண்முகம்' : isHi ? 'मुरुगन षण्मुगम' : 'Murugan S.'}</span>
+                <span className="text-[9px] text-slate-400 block uppercase">
+                  {isTa ? 'விண்ணப்பதாரர்' : isHi ? 'आवेदक' : 'Applicant'}
+                </span>
+                <span className="font-bold text-slate-900">
+                  {isTa ? 'எஸ். செல்வராஜ்' : isHi ? 'एस. सेल्वराज' : 'S. Selvaraj'}
+                </span>
               </div>
               <div>
-                <span className="text-[9px] text-slate-400 block uppercase">Taluk / Dist</span>
-                <span className="font-bold text-slate-900">Uthukottai · Thiruvallur</span>
+                <span className="text-[9px] text-slate-400 block uppercase">
+                  {isTa ? 'கிராமம் · மாவட்டம்' : isHi ? 'गांव · जिला' : 'Village · Dist'}
+                </span>
+                <span className="font-bold text-slate-900">
+                  {isTa ? 'பாக்கம் · திருவள்ளூர்' : isHi ? 'पक्कम · तिरुवल्लूर' : 'Pakkam · Thiruvallur'}
+                </span>
               </div>
               <div>
-                <span className="text-[9px] text-slate-400 block uppercase">Pocket Token</span>
-                <span className="font-mono font-bold text-emerald-700 text-xs">#4821</span>
+                <span className="text-[9px] text-slate-400 block uppercase">
+                  {isTa ? 'பாக்கெட் குறியீடு' : isHi ? 'पॉकेट टोकन' : 'Pocket Token'}
+                </span>
+                <span className="font-mono font-bold text-emerald-700 text-xs">
+                  {pocketCode || `#${caseId}`}
+                </span>
               </div>
             </div>
 
@@ -317,10 +337,10 @@ export const Act1MissedCallPhone: React.FC<Act1MissedCallPhoneProps> = ({
             >
               <span>
                 {isTa
-                  ? 'இ-சேவை மேசையில் திறக்கவும் (#4821) ➔'
+                  ? `இ-சேவை மேசையில் திறக்கவும் (#${caseId}) ➔`
                   : isHi
-                  ? 'जनएआई डेस्क पर केस #4821 खोलें ➔'
-                  : 'Open Case #4821 in Café Desk ➔'}
+                  ? `जनएआई डेस्क पर केस #${caseId} खोलें ➔`
+                  : `Open Case #${caseId} in Café Desk ➔`}
               </span>
               <ArrowRight className="w-4 h-4" />
             </button>
