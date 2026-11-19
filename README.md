@@ -80,17 +80,69 @@ api/tests/test_nilamtrace_v2.py::test_end_to_end_verified_packet_pdf PASSED     
 
 ---
 
+## 📁 Repository Architecture
+
+NilamTrace v2 is organized as a clean, decoupled polyglot monorepo:
+
+```
+nilam/
+├── api/                   # Isolated FastAPI Backend Engine
+│   ├── index.py           # FastAPI entrypoint (app = FastAPI())
+│   ├── config.py          # Settings & api/.env loader
+│   ├── requirements.txt   # Python dependencies
+│   ├── services/          # Inheritance rules, unit math, PDF squeeze, AI extractor
+│   ├── models/            # Pydantic schemas
+│   ├── tests/             # 12 automated verification tests
+│   ├── .env.example       # Backend environment template
+│   └── README.md          # Backend documentation & test commands
+│
+├── web/                   # Isolated Next.js 16 (Turbopack) Frontend
+│   ├── app/               # Next.js App Router (100vh Mission Control)
+│   ├── components/        # Act 1 (Phone), Act 2 (X-Ray), Act 3 (Drawer)
+│   ├── i18n/              # 3-Language switcher (Tamil, English, Hindi)
+│   ├── package.json       # Next.js dependencies & scripts
+│   ├── next.config.ts     # Dev origins & API rewrites
+│   ├── .env.example       # Frontend environment template
+│   └── README.md          # Frontend documentation & build instructions
+│
+├── docs/                  # In-depth architectural & regulatory documentation
+├── vercel.json            # Vercel Services multi-service configuration
+└── README.md              # Root overview
+```
+
+---
+
 ## 🚀 Quickstart & Local Execution
 
 ### 1. Backend Server (FastAPI)
 ```bash
-python -m uvicorn api.index:app --host 127.0.0.1 --port 8000 --reload
+cd api
+pip install -r requirements.txt
+uvicorn index:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### 2. Frontend Application (Next.js 15)
+### 2. Frontend Application (Next.js)
 ```bash
-cd nilam-trace-web
-npm run build
+cd web
+npm install
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## ☁️ Vercel Deployment Guide
+
+### Option 1: Vercel Dashboard (Standard Frontend Deployment)
+1. Import the repository in [Vercel Dashboard](https://vercel.com/new).
+2. Set **Root Directory** to `web`.
+3. In **Environment Variables**, add:
+   - `NEXT_PUBLIC_API_URL`: URL of your deployed FastAPI backend.
+   - `API_BACKEND_URL`: URL of your deployed FastAPI backend (for server-side rewrites).
+4. Deploy!
+
+### Option 2: Vercel Services (Multi-Service Monorepo)
+The root [`vercel.json`](vercel.json) defines both `web` and `api` services for multi-service deployment:
+```bash
+vercel
+```

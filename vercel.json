@@ -1,8 +1,26 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "frontend": {
+      "root": "web"
+    },
+    "backend": {
+      "root": "api",
+      "entrypoint": "index.py"
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/:match*",
-      "destination": "api/index.py"
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
     }
   ]
 }

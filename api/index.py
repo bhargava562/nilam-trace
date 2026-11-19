@@ -6,7 +6,18 @@ Assisted Inheritance Documentation & Case-Preparation Companion
 - Act 3: Voluntary Family Statement Log, Path Selection (Joint Patta vs Release Deed), & HITL Gate
 """
 import io
+import os
+import sys
 import datetime
+from pathlib import Path
+
+# Ensure both api directory and repository root are in sys.path regardless of working directory
+_API_DIR = Path(__file__).resolve().parent
+_ROOT_DIR = _API_DIR.parent
+for _dir_path in [str(_ROOT_DIR), str(_API_DIR)]:
+    if _dir_path not in sys.path:
+        sys.path.insert(0, _dir_path)
+
 from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, status, Request
 from fastapi.responses import Response, JSONResponse
